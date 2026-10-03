@@ -1,40 +1,27 @@
 # Daybreak
 
-A phone-friendly news page: World, US, Tech, India, Business and Health. It costs nothing to run: no server, no API keys, no paid services.
+Top news on your phone, in six sections: World, US, Tech, India, Business and Health. It is free to use and free to run: no accounts, no ads, no API keys.
 
-Live: https://appuchans.github.io/daybreak/
+**Live:** https://appuchans.github.io/daybreak/
 
-## How it works
+## What you get
 
-A GitHub Action (`.github/workflows/news.yml`) runs about every 30 minutes and on every push to `main`. It runs the tests, fetches the RSS feeds listed in `scripts/feeds.json`, writes `news.json`, and deploys it with the static page in `site/` to GitHub Pages. The page reads `news.json` from its own origin, so there is no backend and no CORS problem.
+- The latest headlines from several publishers in each section, with a short summary and a picture where the publisher provides one. Tapping a story opens it on the publisher's own site.
+- A refresh button, and the page refreshes itself when you come back to it after a while.
+- Dark and light themes that follow your phone's setting.
+- Works offline with the last stories it loaded.
+- Updates about every 30 minutes.
 
-How stories are chosen, per section:
-- A feed that fails keeps its previous stories, and one that returns nothing is reported as a warning in the Action log. A section with no stories at all blocks the deploy, so a broken build never replaces a good site.
-- Stories carried by several sources rank first. After that, each source's newest story comes before any source's second story, so one fast feed cannot fill the list.
-- Items older than 72 hours (`maxAgeHours`) are dropped.
-- A story appears in one section only. When two sections carry it, the later tab wins and the earlier tab fills the gap with its next story.
-- India-based outlets, including their business feeds, feed the India section only. They use their India-specific feeds, and a test fails if one is added to another section.
-- Only the headline, a one-line snippet, the link, the source name and an image URL are stored. Stories belong to their publishers.
+## Put it on your phone's home screen
 
-## The page
+- **iPhone:** open the link in Safari, tap Share, then Add to Home Screen.
+- **Android:** open the link in Chrome, open the menu, then tap Install app.
 
-- Refresh button, plus a quiet refresh when you return to the page after 15 minutes. The button fetches the latest published `news.json`; it cannot trigger a rebuild.
-- Installable as an app (Add to Home Screen) and usable offline with the last stories it loaded.
-- Thumbnails come straight from the publishers (https only). If one fails to load, the card falls back to text.
-- Follows the system light or dark theme.
+## How stories are chosen
 
-## Repository layout
+Each section combines feeds from five to nine news outlets. Stories reported by several outlets come first, then each outlet's newest story, so no single outlet fills a section. Anything older than three days is dropped, and a story shows up in one section only. Indian outlets appear in the India section only.
 
-```
-site/       index.html, app.css, app.js (DOM), lib.js (pure rendering helpers), fallback.js,
-            sw.js (service worker), manifest.webmanifest, icons/
-scripts/    feeds.json (sources), news.mjs (parse, dedupe, rank), build-news.mjs (writes news.json),
-            check-feeds.mjs + candidates.json (vet new sources)
-test/       node:test suites for scripts/ and site/lib.js
-.github/    news.yml (build and deploy), ci.yml (tests on PRs and non-main branches),
-            check-feeds.yml (vets scripts/candidates.json when it changes)
-PLAN.md     status and roadmap
-```
+Daybreak keeps just the headline, a one-line summary, the link, the outlet's name and a picture link. The stories belong to their publishers.
 
 ## Run your own copy
 
@@ -45,29 +32,14 @@ Daybreak has no server, so your own copy is a fork plus GitHub Pages:
 3. Open Settings, then Pages, and set the source to **GitHub Actions**.
 4. In the Actions tab, run "Build and deploy" once. Your site appears at `https://<your-user>.github.io/<repo-name>/` when it finishes.
 
-After that it updates itself about every 30 minutes. If a feed stops working, the run log shows a `::warning::` line naming it. Edit `scripts/feeds.json` to change the sources (see below).
+After that it updates itself about every 30 minutes. If a source stops working, the run log names it.
 
-## Develop
+## Choose your own sources
 
-```
-npm ci
-npm test                       # 36 tests
-node scripts/build-news.mjs    # fetches the feeds and writes news.json
-cp news.json site/ && cd site && python3 -m http.server 8000
-```
+Open `scripts/feeds.json`. Each section lists its feeds as a name and an RSS or Atom link. Add, remove or swap feeds there, commit, and the site rebuilds. Give every section at least two feeds so one outage doesn't empty it.
 
-## Add or change a source
+## Good to know
 
-1. List the feeds in `scripts/candidates.json` as `{"section", "name", "url"}`, then push. The "Check candidate feeds" workflow prints, for each one, whether it answers, how many items it returns, how fresh the newest is, what share has images, and whether any text looks garbled.
-2. Add the ones that pass to the right section in `scripts/feeds.json`. Feeds that share a `name` count as one source for ranking.
-3. `npm test` checks that every section has at least two https feeds and that India-based feeds stay in India.
-
-RSS 2.0, RSS 1.0 (RDF) and Atom are supported.
-
-## Known limits
-
-- Scheduled runs can be delayed by GitHub, and GitHub disables schedules on a public repo after 60 days with no activity. Any push resets that.
-- Images are hotlinked: the publisher sees the request, and some block it.
-- Indian outlets' India feeds still carry some foreign stories; there is no classifier.
-
-Remaining ideas (bookmarks, read state, source filter, text size) are in `PLAN.md`.
+- GitHub can delay scheduled updates, so the news may be up to an hour behind.
+- Pictures load from the publishers' own servers, and a few publishers block that. Those stories show without a picture.
+- GitHub pauses scheduled updates on a public repository after 60 days without any activity. Any commit restarts them.
