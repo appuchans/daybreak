@@ -37,6 +37,8 @@ export function safeImageUrl(u) {
   return url && url.startsWith("https:") ? url : null;
 }
 
+// Feeds embed 1x1 tracking pixels as media items (NPR's is named "npr-rss-pixel.png").
+const TRACKING_PIXEL = /pixel|tracking|beacon/i;
 const IMG_EXT = /\.(jpe?g|png|webp|gif|avif)(\?|$)/i;
 
 // Best image for an item: media:content/thumbnail and enclosures (widest declared first),
@@ -49,7 +51,7 @@ export function pickImage(r) {
     const type = m["@_type"] ?? "";
     const medium = m["@_medium"] ?? "";
     const imageLike = type.startsWith("image/") || medium === "image" || (!type && !medium && IMG_EXT.test(url));
-    if (!imageLike) continue;
+    if (!imageLike || TRACKING_PIXEL.test(url)) continue;
     cands.push({ url, width: Number(m["@_width"]) || 0 });
   }
   cands.sort((a, b) => b.width - a.width);
@@ -59,7 +61,7 @@ export function pickImage(r) {
   }
   const html = text(r["content:encoded"]) + text(r.description) + text(r.summary) + text(r.content);
   const m = /<img[^>]+src=["']([^"']+)["']/i.exec(html);
-  return m ? safeImageUrl(m[1]) : null;
+  return m && !TRACKING_PIXEL.test(m[1]) ? safeImageUrl(m[1]) : null;
 }
 
 export function canonicalUrl(u) {

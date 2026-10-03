@@ -101,3 +101,9 @@ test("a duplicate story inherits an image from another source", () => {
   const b = { title: "Same story", snippet: "", url: "https://b.example/1", source: "B", publishedAt: 1, image: "https://i.example/b.jpg" };
   assert.equal(buildSection([a, b])[0].image, "https://i.example/b.jpg");
 });
+
+test("ignores tracking pixels in media and in body", () => {
+  const px = "https://media.npr.org/include/images/tracking/npr-rss-pixel.png?story=1";
+  assert.equal(parseFeed(withMedia(`<media:content url="${px}" medium="image"/>`), "A")[0].image, null);
+  assert.equal(parseFeed(withMedia(`<description><![CDATA[<img src="${px}"/>]]></description>`), "A")[0].image, null);
+});
