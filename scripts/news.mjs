@@ -143,6 +143,21 @@ export function urlAllowed(url, { only, exclude } = {}) {
   return !exclude?.some((p) => new RegExp(p).test(path));
 }
 
+// Roundups, briefings and digests bundle several unrelated stories under one headline, so they cannot be
+// ranked, classified or summarized as one story and are skipped. Deliberately specific: "Morning news
+// conference" and "wrap up" are ordinary headlines.
+const ROUNDUP = new RegExp(
+  [
+    String.raw`\bnews\s*(?:wrap|round-?up|digest|bulletin|in\s+brief)\b`,
+    String.raw`\b(?:evening|morning|afternoon|midday|daily|weekly|weekend)\s+(?:brief(?:ing)?|digest|bulletin|wrap|round-?up|headlines)\b`,
+    String.raw`\bheadlines\s+(?:of\s+the\s+day|today)\b`,
+    String.raw`\btop\s+(?:news|headlines|stories)\s+(?:of|today|this)\b`,
+    String.raw`&\s*more\s*$`,
+  ].join("|"),
+  "i",
+);
+export const isRoundup = (title) => ROUNDUP.test(title);
+
 // The keys a story is recognised by across sources and sections: normalized title and canonical URL.
 export function storyKeys(item) {
   return [normalizeTitle(item.title), canonicalUrl(item.url)];
@@ -165,7 +180,7 @@ export function buildSection(items, { perSource = 4, perSection = 12, exclude = 
     !it.scope ||
     (!classify.dropScopes?.includes(it.scope) && (it.importance ?? 5) >= (classify.minImportance ?? 1));
   const fresh = items.filter(
-    (it) => !storyKeys(it).some((k) => exclude.has(k)) && (maxAgeHours === undefined || now - it.publishedAt <= maxAgeHours * 3_600_000) && wanted(it),
+    (it) => !isRoundup(it.title) && !storyKeys(it).some((k) => exclude.has(k)) && (maxAgeHours === undefined || now - it.publishedAt <= maxAgeHours * 3_600_000) && wanted(it),
   );
   const entries = [];
   for (const it of fresh.sort((a, b) => b.publishedAt - a.publishedAt)) {

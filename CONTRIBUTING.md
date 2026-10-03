@@ -29,6 +29,7 @@ cp news.json site/ && cd site && python3 -m http.server 8000
 - Ranking: stories carried by several sources first, then each source's newest before any source's second, then newest first. Items older than `maxAgeHours` (72) are dropped.
 - Importance is approximated by corroboration: stories several outlets carry rank first. Matching is exact on title or URL, or fuzzy (`sameStory`: at least 5 shared significant words and 60% overlap). It is strict on purpose, because a wrong merge hides a story while a miss only loses a signal.
 - A feed can keep only part of a publisher's site with `only` / `exclude` (regular expressions on the URL path) in `feeds.json`. The India section uses them: The Hindu drops its city and state folders, NDTV and HT keep `/india-news/`, Times of India keeps `/india/`, BusinessLine drops `/news/world/`. Use the vetting workflow's per-feed "where" list (`india-news:12 cities:5`) to find the paths.
+- Roundups, briefings and digests ("Evening news wrap: … & more", "Morning briefing") bundle unrelated stories, so `isRoundup` in `news.mjs` skips them by headline pattern. The patterns are deliberately specific; add one there if a new format slips through.
 - A story appears in one section only; the later tab wins and the earlier tab backfills.
 - India-based outlets feed the India section only, through their India-specific feeds. `test/config.test.mjs` fails if one is added elsewhere.
 - Feeds that share a `name` count as one source for ranking. RSS 2.0, RSS 1.0 (RDF) and Atom are parsed.

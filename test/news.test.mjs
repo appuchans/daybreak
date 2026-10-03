@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseFeed, buildSection, snippet, safeUrl, canonicalUrl, normalizeTitle, cleanText, urlAllowed, sameStory, titleTokens } from "../scripts/news.mjs";
+import { parseFeed, buildSection, snippet, safeUrl, canonicalUrl, normalizeTitle, cleanText, urlAllowed, sameStory, titleTokens, isRoundup } from "../scripts/news.mjs";
 
 const rss = `<?xml version="1.0"?><rss version="2.0"><channel>
 <item><title>Quake hits coast &amp; city</title><link>https://a.example/news/1?utm=x</link>
@@ -194,4 +194,33 @@ test("an event reported with different headlines by several outlets ranks first"
   assert.match(out[0].title, /data protection/i);
   assert.equal(out[0].alsoReportedBy.length, 2);
   assert.equal(out.length, 2);
+});
+
+test("isRoundup catches briefings and digests, not ordinary headlines", () => {
+  for (const t of [
+    "Evening news wrap: Indian men's cricket and hockey teams win gold; Guwahati police arrest seven & more",
+    "Morning briefing: markets slide as oil jumps",
+    "Today's evening brief: five things to know",
+    "News roundup: Parliament, markets and monsoon",
+    "Top headlines today: Iran, oil and the Fed",
+    "Headlines of the day",
+    "Weekly digest of climate stories",
+    "Cricket win, hockey gold, rain alert & more",
+  ]) assert.ok(isRoundup(t), t);
+  for (const t of [
+    "Morning news conference postponed after minister falls ill",
+    "Cabinet to wrap up the budget session early",
+    "Parliament passes landmark data protection bill",
+    "Evening Standard owner sells stake",
+    "Daily wage workers protest in Delhi",
+    "Brief respite for markets as oil eases",
+  ]) assert.ok(!isRoundup(t), t);
+});
+
+test("buildSection skips roundups, including carried-over ones", () => {
+  const items = [
+    { title: "Evening news wrap: cricket win; arrests & more", snippet: "", url: "https://a.example/wrap", source: "A", publishedAt: 2 },
+    { title: "Parliament passes landmark data protection bill", snippet: "", url: "https://a.example/bill", source: "A", publishedAt: 1 },
+  ];
+  assert.deepEqual(buildSection(items).map((i) => i.title), ["Parliament passes landmark data protection bill"]);
 });
