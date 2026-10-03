@@ -4,6 +4,8 @@ import { FALLBACK } from "./fallback.js";
 const KEY_DATA = "dn-news";
 const KEY_TAB = "dn-tab";
 const STALE_AFTER_MS = 15 * 60000;
+const MIN_SPIN_MS = 700; // a fast response should still visibly acknowledge the tap
+const NO_NEWER = "No newer stories yet. Rebuilt about every 30 minutes.";
 
 const tabs = document.getElementById("tabs");
 const feed = document.getElementById("feed");
@@ -46,6 +48,7 @@ async function load(manual) {
   refreshBtn.disabled = true;
   refreshBtn.classList.add("spin");
   if (manual) { note = ""; statusEl.textContent = "Refreshing…"; }
+  const started = Date.now();
   try {
     const res = await fetch("news.json", { cache: "no-cache" });
     if (!res.ok) throw new Error(String(res.status));
@@ -54,10 +57,11 @@ async function load(manual) {
     const same = mode === "live" && json.generatedAt === data.generatedAt;
     data = json;
     mode = "live";
-    note = manual && same ? "Already the latest." : "";
+    if (manual) await new Promise((r) => setTimeout(r, Math.max(0, MIN_SPIN_MS - (Date.now() - started))));
+    note = manual && same ? NO_NEWER : "";
     store(KEY_DATA, JSON.stringify(json));
     render();
-    if (manual) announceEl.textContent = same ? "Already the latest." : `News updated ${ago(json.generatedAt)}.`;
+    if (manual) announceEl.textContent = same ? NO_NEWER : `News updated ${ago(json.generatedAt)}.`;
   } catch {
     if (manual) {
       note = mode === "live" ? "Couldn't refresh. Check your connection." : "Couldn't refresh. You may be offline.";

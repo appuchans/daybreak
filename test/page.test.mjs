@@ -61,7 +61,7 @@ test("statusText covers live, saved, sample and notes", () => {
   const now = Date.parse("2026-10-03T12:30:00Z");
   const at = "2026-10-03T12:00:00Z";
   assert.equal(statusText("live", at, "", now), "Updated 30 min ago");
-  assert.equal(statusText("live", at, "Already the latest.", now), "Updated 30 min ago · Already the latest.");
+  assert.equal(statusText("live", at, "No newer stories yet.", now), "Updated 30 min ago · No newer stories yet.");
   assert.equal(statusText("saved", at, "", now), "Showing stories saved 30 min ago.");
   assert.ok(statusText("sample", at, "", now).startsWith("Live news unavailable."));
 });
