@@ -57,9 +57,10 @@ for (const section of [...config.sections].reverse()) {
   items = items.concat(carried);
   const live = results.filter((r) => r.ok).length;
   if (live < 2) console.log(`::warning::${section.id} has only ${live} live source(s)`);
-  // Sections with a `classify` setting ask Gemini whether each story belongs. The pool is each source's
-  // newest 2 x perSource stories, so removing some still leaves enough to fill the section.
-  if (section.classify && process.env.GEMINI_API_KEY) {
+  // With a key, Gemini rates every story (scope, importance, clickbait). Only sections with a `classify`
+  // setting drop stories on that basis. The pool is each source's newest 2 x perSource stories, so
+  // removing some still leaves enough to fill the section.
+  if (process.env.GEMINI_API_KEY) {
     const perSource = new Map();
     items = items
       .sort((a, b) => b.publishedAt - a.publishedAt)
@@ -68,7 +69,7 @@ for (const section of [...config.sections].reverse()) {
         perSource.set(i.source, n + 1);
         return n < config.perSource * 2;
       });
-    const stats = await classifyItems(items, { guidance: section.classify.guidance, call: geminiClassifier(geminiOptions), cache: classifyCache, delayMs: aiDelayMs });
+    const stats = await classifyItems(items, { guidance: section.classify?.guidance ?? `These items were collected for the ${section.label} section of a news app. Rate scope and importance for a general reader of that section.`, call: geminiClassifier(geminiOptions), cache: classifyCache, delayMs: aiDelayMs });
     for (const i of items) usedInRun.add(canonicalUrl(i.url));
     console.log(`AI classification ${section.id}: cached=${stats.cached} classified=${stats.classified} unclassified=${stats.unclassified}${stats.halted ? ` halted="${stats.halted}"` : ""}`);
   }

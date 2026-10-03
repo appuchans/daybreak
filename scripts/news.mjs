@@ -189,7 +189,7 @@ export function buildSection(items, { perSource = 4, perSection = 12, exclude = 
     taken.set(urlKey, entry);
   }
   return [...new Set(taken.values())]
-    .sort((a, b) => b.sources.size - a.sources.size || (b.item.importance ?? 0) - (a.item.importance ?? 0) || a.sourceRank - b.sourceRank || b.item.publishedAt - a.item.publishedAt)
+    .sort((a, b) => b.sources.size - a.sources.size || (classify ? (b.item.importance ?? 0) - (a.item.importance ?? 0) : 0) || a.sourceRank - b.sourceRank || b.item.publishedAt - a.item.publishedAt)
     .slice(0, perSection)
     .map(({ item, sources }) => ({ ...item, alsoReportedBy: [...sources].filter((s) => s !== item.source) }));
 }

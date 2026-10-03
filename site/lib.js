@@ -31,7 +31,7 @@ export function storyHtml(s, lead = false) {
     : "";
   const also = s.alsoReportedBy?.length ? `<div class="also">Also reported by ${esc(s.alsoReportedBy.join(", "))}</div>` : "";
   const snippet = typeof s.aiSummary === "string" && s.aiSummary
-    ? `<p><span class="ai-tag">AI summary</span> ${esc(s.aiSummary)}</p>`
+    ? `<p><span class="ai-tag">What it's about</span> ${esc(s.aiSummary)}</p>`
     : s.snippet ? `<p>${esc(s.snippet)}</p>` : "";
   return (
     `<a class="story${lead ? " lead" : ""}${img ? " has-img" : ""}" href="${esc(safeHref(s.url))}" target="_blank" rel="noopener noreferrer">` +

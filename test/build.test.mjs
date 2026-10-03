@@ -81,7 +81,7 @@ test("a story carried by two sections is kept only in the later tab, and the ear
   });
 });
 
-test("AI summaries: off without a key, added with one, and the key never reaches news.json", async () => {
+test("AI: off without a key; with one, clickbait-flagged stories get a what-it-is-about line and the key never reaches news.json", async () => {
   const long = "A description long enough to be worth summarizing, with plenty of detail beyond the headline itself.";
   const xml = `<rss version="2.0"><channel><item><title>Story</title><link>https://x.example/s</link><description>${long}</description><pubDate>Sat, 03 Oct 2026 08:00:00 GMT</pubDate></item></channel></rss>`;
   await withServer({ "/a": xml }, async (base) => {
@@ -91,13 +91,24 @@ test("AI summaries: off without a key, added with one, and the key never reaches
     assert.equal(off.news.sections.world.items[0].aiSummary, undefined);
     assert.ok(off.out.includes("AI summaries: off"));
 
-    const gemini = createServer((req, res) => { res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ candidates: [{ content: { parts: [{ text: "One sentence summary." }] } }] })); });
+    const gemini = createServer((req, res) => {
+      let body = "";
+      req.on("data", (c) => (body += c));
+      req.on("end", () => {
+        const parsed = JSON.parse(body);
+        const classify = parsed.generationConfig.response_mime_type === "application/json";
+        const text = classify ? JSON.stringify([{ id: 0, scope: "national", importance: 4, clickbait: true }]) : "One sentence summary.";
+        res.setHeader("content-type", "application/json");
+        res.end(JSON.stringify({ candidates: [{ content: { parts: [{ text }] } }] }));
+      });
+    });
     await new Promise((r) => gemini.listen(0, "127.0.0.1", r));
     try {
       const on = await build(await mkdtemp(join(tmpdir(), "daybreak-")), config, null, { GEMINI_API_KEY: "TOPSECRET", GEMINI_BASE_URL: `http://127.0.0.1:${gemini.address().port}`, SUMMARY_DELAY_MS: "0" });
       assert.equal(on.code, 0);
       assert.equal(on.news.sections.world.items[0].aiSummary, "One sentence summary.");
       assert.ok(on.out.includes("AI summaries: reused=0 added=1"));
+      assert.equal(on.news.sections.world.items[0].clickbait, true);
       assert.ok(!JSON.stringify(on.news).includes("TOPSECRET"));
       assert.ok(!on.out.includes("TOPSECRET"));
     } finally { gemini.close(); }
@@ -132,7 +143,7 @@ test("AI classification drops a local story from a classified section and caches
       assert.ok(r.out.includes("AI classification india: cached=0 classified=2 unclassified=1"));
       assert.deepEqual(seenPrompts, ["application/json"]);
       const cache = JSON.parse(await readFile(join(dir, "classify-cache.json"), "utf8"));
-      assert.deepEqual(cache["x.example/6"], { scope: "local", importance: 2 });
+      assert.deepEqual(cache["x.example/6"], { scope: "local", importance: 2, clickbait: false });
       assert.ok(!JSON.stringify(r.news).includes("TOPSECRET") && !JSON.stringify(cache).includes("TOPSECRET"));
     });
   } finally { gemini.close(); }

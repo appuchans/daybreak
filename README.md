@@ -11,16 +11,16 @@ Top news on your phone, in six sections: World, US, Tech, India, Business and He
 - Dark and light themes that follow your phone's setting.
 - Works offline with the last stories it loaded.
 - Updates about every 30 minutes.
-- Optional one-sentence AI summaries, labelled as such (see below).
+- Optional AI help: a relevance check for the India section and plain "What it's about" lines for clickbait headlines (see below).
 
 ## AI features (optional)
 
 With a Gemini API key set up, an AI model does two jobs in the background:
 
 - **Relevance check for the India section.** It reads each candidate headline and judges whether it matters to readers across India. A town's road project, a local crime or a foreign story with no India link is dropped, and more important stories rank higher.
-- **One-sentence summaries**, shown with an "AI summary" label in place of the publisher's own description.
+- **Clickbait helper.** It flags headlines that hide or distort what the story is about (a teaser, a vague phrase, a question left unanswered). Those cards get a one-sentence "What it's about" line, written only from the headline and the publisher's description. Ordinary headlines are left alone, and if the description doesn't make the story clear, no line is added.
 
-Only public headlines and descriptions are sent to Gemini. On Google's free tier, content sent to the API may be used to improve Google's products. A model can get things wrong, so check the story itself before relying on a summary. With no key, or if Gemini is unavailable, nothing is dropped and the page shows the publishers' own descriptions.
+Only public headlines and descriptions are sent to Gemini. On Google's free tier, content sent to the API may be used to improve Google's products. A model can get things wrong, so check the story itself before relying on a "What it's about" line. With no key, or if Gemini is unavailable, nothing is dropped and the page shows the publishers' own headlines and descriptions.
 
 ## Put it on your phone's home screen
 

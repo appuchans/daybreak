@@ -35,7 +35,7 @@ cp news.json site/ && cd site && python3 -m http.server 8000
 
 ## AI classification (Gemini)
 
-`scripts/classify.mjs`, run for any section whose `feeds.json` entry has a `classify` block (India today). Gemini rates each candidate headline's `scope` (national, state, local, international) and `importance` (1 to 5) against the section's `guidance` text; `dropScopes` and `minImportance` decide what is removed, and `importance` breaks ties after corroboration in the ranking.
+`scripts/classify.mjs`, run for every section when `GEMINI_API_KEY` is set. Only India has a `classify` block today. Gemini rates each candidate headline's `scope` (national, state, local, international), `importance` (1 to 5) and `clickbait` (true when the headline hides or distorts what the story is about). With a key every section is rated (sections without a `classify` block use a generic guidance text and drop nothing); in a section with a `classify` block, the section's `guidance` text applies, `dropScopes` and `minImportance` decide what is removed, and `importance` breaks ties after corroboration in the ranking.
 
 - The pool is each source's newest 2 x `perSource` stories, in batches of 40 per request, so removing stories still leaves enough to fill the section.
 - Answers are cached by canonical URL in `classify-cache.json`, which the workflow publishes next to `news.json` and fetches again on the next run, so each story is classified once. The page never reads that file.
@@ -43,12 +43,13 @@ cp news.json site/ && cd site && python3 -m http.server 8000
 - Model replies are validated (known scope, integer importance 1 to 5, id in range); headlines are passed to the model as data inside a JSON array.
 - `scripts/gemini.mjs` holds the one REST call used by classification and summaries.
 
-## AI summaries (Gemini)
+## AI "what it's about" lines (Gemini)
 
 `scripts/summarize.mjs`, called from `build-news.mjs`. Off unless the `GEMINI_API_KEY` secret exists.
 
 - Model `gemini-3.5-flash-lite` (override with `GEMINI_MODEL`), `generateContent` REST call via `scripts/gemini.mjs`, key in the `x-goog-api-key` header.
-- Summaries come from the headline and feed description only, one sentence; descriptions under 60 characters are skipped, and the model may answer `SKIP`.
+- Summaries come from the headline and feed description only, one sentence; descriptions under 40 characters are skipped.
+- Only stories the classifier flagged `clickbait` are summarized, and the line is labelled "What it's about" on the page. The prompt tells the model to say what the story is about using only the headline and description, or to answer `SKIP` when the description does not make that clear. Earlier summaries of non-clickbait stories are not reused.
 - Each story is summarized once: earlier summaries are reused by canonical URL from the previously published `news.json`.
 - Free-tier limits are only visible in the AI Studio account, so each run makes at most `SUMMARY_MAX_PER_RUN` (30) new calls, lead stories first, 4 s apart (`SUMMARY_DELAY_MS`). HTTP 429/400/401/403 stop the run's calls (a warning in the log); three failures in a row do too. The build never fails because of summaries.
 - Roll back: delete the secret (summaries vanish on the next build), or `git revert` the commit that added them.

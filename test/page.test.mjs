@@ -66,9 +66,9 @@ test("statusText covers live, saved, sample and notes", () => {
   assert.ok(statusText("sample", at, "", now).startsWith("Live news unavailable."));
 });
 
-test("an AI summary replaces the snippet, is labelled, and is escaped", () => {
+test("a what-it-is-about line replaces the snippet, is labelled, and is escaped", () => {
   const html = storyHtml({ title: "T", snippet: "Feed snippet.", aiSummary: `Kim <script>x</script> & co`, url: "https://a.example/1", source: "S" });
-  assert.ok(html.includes('<span class="ai-tag">AI summary</span> Kim &lt;script&gt;x&lt;/script&gt; &amp; co'));
+  assert.ok(html.includes(`<span class="ai-tag">What it's about</span> Kim &lt;script&gt;x&lt;/script&gt; &amp; co`));
   assert.ok(!html.includes("Feed snippet."));
   assert.ok(storyHtml({ title: "T", snippet: "Feed snippet.", url: "https://a.example/1", source: "S" }).includes("Feed snippet."));
 });

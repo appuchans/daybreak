@@ -4,7 +4,7 @@ import { createServer } from "node:http";
 import { cleanSummary, geminiCaller, summarizeSections, HaltSummaries, eligible } from "../scripts/summarize.mjs";
 
 const LONG = "A description long enough to be worth summarizing, with plenty of detail beyond the headline itself.";
-const item = (n, over = {}) => ({ title: `Headline ${n}`, snippet: LONG, url: `https://a.example/${n}`, source: "A", publishedAt: n, ...over });
+const item = (n, over = {}) => ({ title: `Headline ${n}`, snippet: LONG, url: `https://a.example/${n}`, source: "A", publishedAt: n, clickbait: true, ...over });
 const noSleep = () => Promise.resolve();
 
 test("cleanSummary: SKIP, empty and overlong are rejected; quotes and entities are cleaned", () => {
@@ -15,8 +15,10 @@ test("cleanSummary: SKIP, empty and overlong are rejected; quotes and entities a
   assert.equal(cleanSummary(`"Kim&#039;s test <b>fired</b>."`), "Kim's test fired.");
 });
 
-test("eligible needs a description of real length that is not the headline", () => {
+test("eligible needs a clickbait flag and a description that says something beyond the headline", () => {
   assert.ok(eligible(item(1)));
+  assert.ok(!eligible(item(1, { clickbait: false })));
+  assert.ok(!eligible(item(1, { clickbait: undefined })));
   assert.ok(!eligible(item(1, { snippet: "Short." })));
   const t = "A headline that is repeated verbatim as the description, long enough to pass the length check";
   assert.ok(!eligible({ title: t, snippet: t }));
@@ -124,4 +126,15 @@ test("the first three ordinary failures are logged with their cause", async () =
   const logs = [];
   await summarizeSections({ a: { items: [1, 2, 3, 4].map((n) => item(n)) } }, { call: async () => { throw new Error("HTTP 503 UNAVAILABLE overloaded"); }, delayMs: 0, sleep: noSleep, log: (m) => logs.push(m) });
   assert.equal(logs.filter((m) => m.includes("HTTP 503 UNAVAILABLE overloaded")).length, 3);
+});
+
+test("only clickbait-flagged stories are summarized, and old summaries of other stories are not reused", async () => {
+  const sections = { a: { items: [item(1, { clickbait: false }), item(2), item(3, { clickbait: undefined })] } };
+  const previous = { sections: { a: { items: [{ url: "https://a.example/1", aiSummary: "Old restatement." }] } } };
+  const calls = [];
+  await summarizeSections(sections, { call: async (s) => { calls.push(s.title); return "What it is about."; }, previous, delayMs: 0, sleep: noSleep });
+  assert.deepEqual(calls, ["Headline 2"]);
+  assert.equal(sections.a.items[0].aiSummary, undefined);
+  assert.equal(sections.a.items[1].aiSummary, "What it is about.");
+  assert.equal(sections.a.items[2].aiSummary, undefined);
 });

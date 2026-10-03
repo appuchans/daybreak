@@ -9,10 +9,11 @@ const noSleep = () => Promise.resolve();
 const reply = (rows) => async () => JSON.stringify(rows);
 
 test("parseClassification accepts valid rows, tolerates code fences, and ignores invalid ones", () => {
-  const text = '```json\n[{"id":0,"scope":"local","importance":2},{"id":1,"scope":"national","importance":5},{"id":2,"scope":"galaxy","importance":3},{"id":3,"scope":"state","importance":9},{"id":7,"scope":"state","importance":3},{"id":"x","scope":"state","importance":3}]\n```';
+  const text = '```json\n[{"id":0,"scope":"local","importance":2,"clickbait":true},{"id":1,"scope":"national","importance":5},{"id":2,"scope":"galaxy","importance":3},{"id":3,"scope":"state","importance":9},{"id":7,"scope":"state","importance":3},{"id":"x","scope":"state","importance":3}]\n```';
   const out = parseClassification(text, 4);
   assert.deepEqual([...out.keys()], [0, 1]);
-  assert.deepEqual(out.get(0), { scope: "local", importance: 2 });
+  assert.deepEqual(out.get(0), { scope: "local", importance: 2, clickbait: true });
+  assert.deepEqual(out.get(1), { scope: "national", importance: 5, clickbait: false });
   assert.equal(parseClassification("not json at all", 3).size, 0);
   assert.equal(parseClassification('{"id":0}', 3).size, 0);
 });
@@ -27,15 +28,16 @@ test("buildUser puts headlines in a JSON array and trims the note", () => {
 
 test("classifyItems reuses cached answers and only asks about new stories", async () => {
   const items = [item(1), item(2)];
-  const cache = new Map([["a.example/1", { scope: "national", importance: 4 }]]);
+  const cache = new Map([["a.example/1", { scope: "national", importance: 4, clickbait: false }]]);
   const seen = [];
-  const stats = await classifyItems(items, { guidance: "G", cache, delayMs: 0, sleep: noSleep, call: async (sys, user) => { seen.push(user); return JSON.stringify([{ id: 0, scope: "local", importance: 2 }]); } });
+  const stats = await classifyItems(items, { guidance: "G", cache, delayMs: 0, sleep: noSleep, call: async (sys, user) => { seen.push(user); return JSON.stringify([{ id: 0, scope: "local", importance: 2, clickbait: true }]); } });
   assert.deepEqual([stats.cached, stats.classified], [1, 1]);
   assert.equal(items[0].scope, "national");
   assert.equal(items[1].scope, "local");
   assert.equal(seen.length, 1);
   assert.ok(seen[0].includes("Headline number 2") && !seen[0].includes("Headline number 1"));
-  assert.deepEqual(cache.get("a.example/2"), { scope: "local", importance: 2 });
+  assert.deepEqual(cache.get("a.example/2"), { scope: "local", importance: 2, clickbait: true });
+  assert.equal(items[1].clickbait, true);
 });
 
 test("classifyItems sends at most 40 stories per request", async () => {
@@ -79,4 +81,13 @@ test("buildSection drops wrong-scope and minor stories, keeps unclassified ones,
 test("a section without classify settings ignores scope fields", () => {
   const out = buildSection([item(1, { scope: "local", importance: 1 })]);
   assert.equal(out.length, 1);
+});
+
+test("a cached answer from before the clickbait question is asked again", async () => {
+  const items = [item(1)];
+  const cache = new Map([["a.example/1", { scope: "national", importance: 4 }]]);
+  let calls = 0;
+  await classifyItems(items, { guidance: "G", cache, delayMs: 0, sleep: noSleep, call: async () => { calls++; return JSON.stringify([{ id: 0, scope: "national", importance: 4, clickbait: true }]); } });
+  assert.equal(calls, 1);
+  assert.equal(items[0].clickbait, true);
 });
