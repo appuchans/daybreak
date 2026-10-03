@@ -7,10 +7,24 @@ const SNIPPET_MAX = 160;
 const asArray = (v) => (v === undefined || v === null ? [] : Array.isArray(v) ? v : [v]);
 const text = (v) => (v && typeof v === "object" ? (v["#text"] ?? "") : (v ?? "")).toString();
 
+// Many feeds escape their text twice (`&amp;#8217;` in the XML), so after the XML parser's single
+// decode the text still holds entities. Decode them once more, after tags are stripped so that a
+// decoded "&lt;" is never mistaken for markup.
+const NAMED_ENTITIES = {
+  amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ", ndash: "–", mdash: "—",
+  lsquo: "‘", rsquo: "’", ldquo: "“", rdquo: "”", hellip: "…", bull: "•",
+};
+
+export function decodeEntities(s) {
+  return s.replace(/&(?:#(\d+)|#[xX]([0-9a-fA-F]+)|([a-zA-Z]+));/g, (whole, dec, hex, name) => {
+    if (name) return NAMED_ENTITIES[name.toLowerCase()] ?? whole;
+    const code = dec ? Number(dec) : parseInt(hex, 16);
+    return code > 0 && code <= 0x10ffff && !(code >= 0xd800 && code <= 0xdfff) ? String.fromCodePoint(code) : whole;
+  });
+}
+
 export function cleanText(s) {
-  return text(s)
-    .replace(/<[^>]*>/g, " ")
-    .replace(/&nbsp;/g, " ")
+  return decodeEntities(text(s).replace(/<[^>]*>/g, " "))
     .replace(/\s+/g, " ")
     .trim();
 }

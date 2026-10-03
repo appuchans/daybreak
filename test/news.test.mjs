@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseFeed, buildSection, snippet, safeUrl, canonicalUrl, normalizeTitle } from "../scripts/news.mjs";
+import { parseFeed, buildSection, snippet, safeUrl, canonicalUrl, normalizeTitle, cleanText } from "../scripts/news.mjs";
 
 const rss = `<?xml version="1.0"?><rss version="2.0"><channel>
 <item><title>Quake hits coast &amp; city</title><link>https://a.example/news/1?utm=x</link>
@@ -135,4 +135,18 @@ test("maxAgeHours drops stale items", () => {
   const recent = { ...it("A", "Recent", "https://a.example/new", 0), publishedAt: now - 2 * 3_600_000 };
   assert.deepEqual(buildSection([old, recent], { maxAgeHours: 72, now }).map((i) => i.title), ["Recent"]);
   assert.equal(buildSection([old, recent], { now }).length, 2);
+});
+
+test("decodes entities that survive the XML parser (double-escaped feeds)", () => {
+  const xml = `<rss version="2.0"><channel>
+<item><title>Don&amp;#8217;t panic: Kim&amp;#039;s &amp;amp; Jo&amp;#x2019;s &amp;quot;plan&amp;quot;</title><link>https://a.example/1</link><pubDate>Sat, 03 Oct 2026 08:00:00 GMT</pubDate></item></channel></rss>`;
+  assert.equal(parseFeed(xml, "A")[0].title, `Don’t panic: Kim's & Jo’s "plan"`);
+});
+
+test("entity decoding leaves unknown entities and invalid code points alone", () => {
+  assert.equal(cleanText("a &bogus; b &#0; c &#xD800; d &#1114112;"), "a &bogus; b &#0; c &#xD800; d &#1114112;");
+});
+
+test("a decoded &lt; is text, not markup", () => {
+  assert.equal(cleanText("1 &lt; 2 and 3 &gt; 2"), "1 < 2 and 3 > 2");
 });

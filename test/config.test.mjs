@@ -17,3 +17,10 @@ test("feed config: unique section ids, >= 2 https feeds each", () => {
 test("section order matches the product order", () => {
   assert.deepEqual(config.sections.map((s) => s.id), ["world", "us", "tech", "india", "business", "health"]);
 });
+
+test("India-based outlets feed the India section only", () => {
+  const indian = /thehindu|timesofindia|indiatimes|ndtv|hindustantimes|livemint|economictimes|businessline/;
+  for (const s of config.sections.filter((s) => s.id !== "india")) {
+    for (const f of s.feeds) assert.ok(!indian.test(f.url), `${s.id}/${f.name} is an India-based feed`);
+  }
+});

@@ -111,7 +111,7 @@
         },
         {
           "name": "Times of India",
-          "url": "https://timesofindia.indiatimes.com/rssfeedstopstories.cms"
+          "url": "https://timesofindia.indiatimes.com/rssfeeds/-2128936835.cms"
         },
         {
           "name": "BBC News",
@@ -119,15 +119,35 @@
         },
         {
           "name": "NDTV",
-          "url": "https://feeds.feedburner.com/ndtvnews-top-stories"
+          "url": "https://feeds.feedburner.com/ndtvnews-india-news"
         },
         {
           "name": "Hindustan Times",
           "url": "https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml"
         },
         {
-          "name": "Scroll",
-          "url": "https://feeds.feedburner.com/ScrollinArticles.rss"
+          "name": "Hindustan Times",
+          "url": "https://www.hindustantimes.com/feeds/rss/business/rssfeed.xml"
+        },
+        {
+          "name": "Mint",
+          "url": "https://www.livemint.com/rss/companies"
+        },
+        {
+          "name": "Mint",
+          "url": "https://www.livemint.com/rss/economy"
+        },
+        {
+          "name": "Economic Times",
+          "url": "https://economictimes.indiatimes.com/industry/rssfeeds/13352306.cms"
+        },
+        {
+          "name": "Economic Times",
+          "url": "https://economictimes.indiatimes.com/news/economy/rssfeeds/1373380680.cms"
+        },
+        {
+          "name": "BusinessLine",
+          "url": "https://www.thehindubusinessline.com/feeder/default.rss"
         }
       ]
     },
@@ -154,22 +174,6 @@
         {
           "name": "MarketWatch",
           "url": "https://feeds.content.dowjones.io/public/rss/mw_topstories"
-        },
-        {
-          "name": "Mint",
-          "url": "https://www.livemint.com/rss/markets"
-        },
-        {
-          "name": "Economic Times",
-          "url": "https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms"
-        },
-        {
-          "name": "Economic Times",
-          "url": "https://economictimes.indiatimes.com/industry/rssfeeds/13352306.cms"
-        },
-        {
-          "name": "BusinessLine",
-          "url": "https://www.thehindubusinessline.com/feeder/default.rss"
         }
       ]
     },
