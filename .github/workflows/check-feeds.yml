@@ -2,6 +2,11 @@ name: Check candidate feeds
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - scripts/candidates.json
+      - scripts/check-feeds.mjs
+      - .github/workflows/check-feeds.yml
 
 permissions:
   contents: read
