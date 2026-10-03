@@ -39,7 +39,7 @@ test("geminiCaller sends the documented request and keeps the key out of the URL
     const out = await geminiCaller({ apiKey: "SECRET", baseUrl })(item(1));
     assert.equal(out, "Summary here.");
     const [req] = seen;
-    assert.equal(req.url, "/v1beta/models/gemini-2.5-flash-lite:generateContent");
+    assert.equal(req.url, "/v1beta/models/gemini-3.5-flash-lite:generateContent");
     assert.equal(req.headers["x-goog-api-key"], "SECRET");
     assert.ok(!req.url.includes("SECRET"));
     const body = JSON.parse(req.body);

@@ -2,7 +2,7 @@
 // a rate limit or a model error the build still publishes, and cards fall back to the feed snippet.
 import { cleanText, canonicalUrl, normalizeTitle } from "./news.mjs";
 
-export const DEFAULT_MODEL = "gemini-2.5-flash-lite";
+export const DEFAULT_MODEL = "gemini-3.5-flash-lite"; // the API itself named this when 2.5-flash-lite returned 404 "no longer available to new users" (2026-10-03)
 const MIN_SNIPPET = 60; // shorter descriptions add nothing beyond the headline
 const MAX_SUMMARY = 300;
 

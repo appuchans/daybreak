@@ -35,7 +35,7 @@ cp news.json site/ && cd site && python3 -m http.server 8000
 
 `scripts/summarize.mjs`, called from `build-news.mjs`. Off unless the `GEMINI_API_KEY` secret exists.
 
-- Model `gemini-2.5-flash-lite` (override with `GEMINI_MODEL`), `generateContent` REST call, key in the `x-goog-api-key` header.
+- Model `gemini-3.5-flash-lite` (override with `GEMINI_MODEL`), `generateContent` REST call, key in the `x-goog-api-key` header.
 - Summaries come from the headline and feed description only, one sentence; descriptions under 60 characters are skipped, and the model may answer `SKIP`.
 - Each story is summarized once: earlier summaries are reused by canonical URL from the previously published `news.json`.
 - Free-tier limits are only visible in the AI Studio account, so each run makes at most `SUMMARY_MAX_PER_RUN` (30) new calls, lead stories first, 4 s apart (`SUMMARY_DELAY_MS`). HTTP 429/400/401/403 stop the run's calls (a warning in the log); three failures in a row do too. The build never fails because of summaries.
