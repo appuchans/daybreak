@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#0b1f4d">
+<meta name="description" content="Top news: World, US, Tech, India, Business and Health.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Daybreak">
+<title>Daybreak News</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Public+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div class="wrap">
+<header>
+<div class="date" id="date"></div>
+<div class="titlerow">
+<h1>Daybreak News</h1>
+<button id="refresh" class="refresh" type="button" aria-label="Refresh news" title="Refresh"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
+</div>
+<div class="status" id="status"></div>
+<div class="sr-only" id="announce" role="status" aria-live="polite"></div>
+</header>
+<nav class="tabs" id="tabs" aria-label="Sections"></nav>
+<main id="feed"></main>
+<footer><p class="note">Headlines link to their original publishers.</p></footer>
+</div>
+<script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,32 +1,37 @@
-# Daybreak: enhancement plan
+# Daybreak: plan and status
 
 Constraints: no paid services; public repo; sections in order World, US, Tech, India, Business, Health.
 
 ## Architecture
-Scheduled GitHub Action fetches RSS feeds, writes `news.json`, deploys it with the page to GitHub Pages. The browser reads a same-origin file: no backend, no keys, no CORS.
+A scheduled GitHub Action fetches RSS feeds (`scripts/feeds.json`), writes `news.json`, and deploys it with the static page in `site/` to GitHub Pages. The browser reads a same-origin file: no backend, no keys, no CORS.
 
-## Phase 1: live data
-- `scripts/feeds.json`: per-section feed list. Candidates (unverified, from memory):
-  World: BBC World, Guardian World, Al Jazeera. US: NPR, BBC US & Canada, Guardian US.
-  Tech: Ars Technica, The Verge, Guardian Technology. India: The Hindu, Times of India, BBC India.
-- `scripts/build-news.mjs`: fetch with per-feed timeout, normalize to
-  `{title, snippet, url, source, image, publishedAt}`, dedupe (URL, then normalized title), take top 3-5 per source, interleave by recency; stories in several feeds rank first.
-- A failed feed keeps its items from the previous `news.json`; each section needs >= 2 live sources.
-- Store only title, one-line snippet, link, source name.
-- Workflow: cron every 30 min + manual dispatch, deploy via Pages actions. Page falls back to localStorage, then the embedded snapshot, and shows "updated X ago" / offline.
-- First run verifies the feed list (this build environment cannot reach the feeds).
+```
+scripts/   feeds.json, news.mjs (pure parse/rank), build-news.mjs (I/O), check-feeds.mjs (vetting)
+site/      index.html, app.css, app.js (DOM), lib.js (pure, unit tested), fallback.js, sw.js, manifest, icons
+test/      node:test suites for scripts/ and site/lib.js
+.github/   news.yml (build + deploy, every 30 min and on push to main), ci.yml (PRs and non-main branches),
+           check-feeds.yml (vets scripts/candidates.json when it changes)
+```
 
-## Phase 2: installable PWA (built)
-Manifest, icons, service worker. One rule instead of per-resource strategies: same-origin GETs are network-first with a cache fallback, so a deploy is never hidden behind a stale shell. Publisher images are not cached.
+## Built
+- Phase 1, live data: 6 sections, 5 to 10 feeds each; per-feed failure keeps that source's previous items; a section with no items blocks the deploy.
+- Ranking: stories carried by several sources first, then each source's newest before any source's second; items older than 72 h dropped; a story appears in one section only (later tab wins).
+- India-based outlets feed the India section only, via India-specific feeds (enforced by a test).
+- Entities that feeds escape twice are decoded; RSS 2.0, RSS 1.0/RDF and Atom are parsed.
+- Phase 2, PWA: manifest, icons, network-first service worker, offline fallback to the last saved news.
+- Thumbnails (hotlinked https only; tracking pixels ignored; BBC lead image upgraded to 976 px).
+- Refresh button and quiet refresh when the page is reopened after 15 minutes.
+- Phase 4: page split into modules with unit-tested rendering; CI on PRs; axe and Lighthouse pass
+  (accessibility 100, SEO 100, best practices 96, performance 90 in a sandbox that blocks fonts and image hosts).
 
-## Phase 3: reading features
-Thumbnails from feed media tags (built, pulled forward): hotlinked https URLs only, the publisher sees the request. Remaining: pull-to-refresh, bookmarks, read state, source filter, text size. localStorage only.
-
-## Phase 4: quality
-Split into `src/`; unit tests for normalizer and dedupe; Lighthouse and accessibility pass; CI on PRs.
+## Remaining (Phase 3, reading features; localStorage only)
+Bookmarks, read state, source filter, text size, and optionally a pull-to-refresh gesture.
 
 ## Dropped
-AI summaries (paid API, no free key storage).
+AI summaries (paid API, no free place to keep a key).
 
 ## Known risks
-Scheduled runs can be delayed; GitHub disables schedules on a public repo after 60 days without activity; feeds change or disappear (monitored by the per-section minimum check).
+- Scheduled runs can be delayed, and GitHub disables schedules on a public repo after 60 days without activity (any push resets it).
+- Feeds change or disappear; the per-feed warning in the Actions log and the vetting workflow are the detection.
+- Images are hotlinked: publishers see the request, some block hotlinking (the card falls back to text), and a failed image shifts the layout once.
+- Indian outlets' India feeds still carry some foreign stories; there is no classifier.

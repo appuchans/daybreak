@@ -2,7 +2,7 @@
 // last cached copy, so a fresh deploy is never hidden behind a stale shell and no
 // version number needs bumping. Cross-origin requests (publisher images) are untouched.
 const CACHE = "daybreak-v1";
-const SHELL = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"];
+const SHELL = ["./", "index.html", "app.css", "app.js", "lib.js", "fallback.js", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

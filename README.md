@@ -2,7 +2,7 @@
 
 Top news for your phone: World, US, Tech, India, Business, Health. Free to run, no servers, no API keys.
 
-A scheduled GitHub Action (`.github/workflows/news.yml`) fetches the RSS feeds in `scripts/feeds.json`, writes `news.json`, and deploys it with `index.html` to GitHub Pages. The page reads `news.json` from its own origin and keeps the last good copy in localStorage.
+A scheduled GitHub Action (`.github/workflows/news.yml`) fetches the RSS feeds in `scripts/feeds.json`, writes `news.json`, and deploys it with `index.html` to GitHub Pages. The page (`site/`) reads `news.json` from its own origin and keeps the last good copy in localStorage.
 
 A story appears in one section only: when several sections carry it, the later tab wins (a Flydubai story in both World and India stays in India) and the earlier tab fills the gap with its next story.
 
@@ -22,7 +22,8 @@ To vet new sources, list them in `scripts/candidates.json` and push: the "Check 
 npm ci
 npm test
 node scripts/build-news.mjs   # writes news.json
+cp news.json site/ && npx --yes serve site   # or any static server
 ```
-Serve the folder with any static server to view `index.html`.
+Pull requests and branch pushes run the tests (`.github/workflows/ci.yml`).
 
 See `PLAN.md` for the roadmap. Headlines, one-line snippets and links only; stories belong to their publishers.

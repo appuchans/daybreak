@@ -99,11 +99,14 @@ function atomLink(link) {
 // an http(s) link or a parseable date are dropped, not guessed at.
 export function parseFeed(xml, source) {
   const doc = parser.parse(xml);
-  const raw = doc?.rss ? asArray(doc.rss.channel?.item) : asArray(doc?.feed?.entry);
+  // RSS 2.0 (rss/channel/item), RSS 1.0 (rdf:RDF/item, e.g. Deutsche Welle) or Atom (feed/entry).
+  const rdf = doc?.["rdf:RDF"];
+  const isRss = Boolean(doc?.rss || rdf);
+  const raw = doc?.rss ? asArray(doc.rss.channel?.item) : rdf ? asArray(rdf.item) : asArray(doc?.feed?.entry);
   const items = [];
   for (const r of raw) {
     const title = cleanText(r.title);
-    const url = safeUrl(doc.rss ? (r.link ?? r.guid) : atomLink(r.link));
+    const url = safeUrl(isRss ? (r.link ?? r.guid) : atomLink(r.link));
     const date = Date.parse(text(r.pubDate ?? r.published ?? r.updated ?? r["dc:date"]));
     if (!title || !url || Number.isNaN(date)) continue;
     items.push({ title, snippet: snippet(r.description ?? r.summary ?? r.content), url, source, publishedAt: date, image: pickImage(r) });

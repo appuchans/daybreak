@@ -150,3 +150,13 @@ test("entity decoding leaves unknown entities and invalid code points alone", ()
 test("a decoded &lt; is text, not markup", () => {
   assert.equal(cleanText("1 &lt; 2 and 3 &gt; 2"), "1 < 2 and 3 > 2");
 });
+
+test("parses RSS 1.0 / RDF feeds (Deutsche Welle)", () => {
+  const xml = `<?xml version="1.0"?><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://purl.org/rss/1.0/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel rdf:about="https://dw.example"><title>DW</title></channel>
+<item rdf:about="https://dw.example/a"><title>RDF story</title><link>https://dw.example/a</link><description>Body &lt;b&gt;text&lt;/b&gt;</description><dc:date>2026-10-03T08:00:00Z</dc:date></item></rdf:RDF>`;
+  const [item] = parseFeed(xml, "DW");
+  assert.equal(item.title, "RDF story");
+  assert.equal(item.url, "https://dw.example/a");
+  assert.equal(item.snippet, "Body text");
+});
