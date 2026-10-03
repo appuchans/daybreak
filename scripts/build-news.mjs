@@ -1,7 +1,7 @@
 // Fetches every configured feed and writes news.json. A feed that fails keeps its
 // items from the previous published news.json, so one dead source never empties a section.
 import { readFile, writeFile } from "node:fs/promises";
-import { parseFeed, buildSection, storyKeys, urlAllowed, canonicalUrl } from "./news.mjs";
+import { parseFeed, buildSection, storyKeys, urlAllowed, canonicalUrl, trimPool } from "./news.mjs";
 import { geminiCaller, summarizeSections } from "./summarize.mjs";
 import { classifyItems, geminiClassifier } from "./classify.mjs";
 import { enrichSnippets } from "./describe.mjs";
@@ -63,14 +63,9 @@ for (const section of [...config.sections].reverse()) {
   // setting drop stories on that basis. The pool is each source's newest 2 x perSource stories, so
   // removing some still leaves enough to fill the section.
   if (process.env.GEMINI_API_KEY) {
-    const perSource = new Map();
-    items = items
-      .sort((a, b) => b.publishedAt - a.publishedAt)
-      .filter((i) => {
-        const n = perSource.get(i.source) ?? 0;
-        perSource.set(i.source, n + 1);
-        return n < config.perSource * 2;
-      });
+    const feedsPerName = new Map();
+    for (const f of section.feeds) feedsPerName.set(f.name, (feedsPerName.get(f.name) ?? 0) + 1);
+    items = trimPool(items, (name) => config.perSource * 2 * Math.min(feedsPerName.get(name) ?? 1, 4));
     const stats = await classifyItems(items, { guidance: section.classify?.guidance ?? `These items were collected for the ${section.label} section of a news app. Rate scope and importance for a general reader of that section.`, call: geminiClassifier(geminiOptions), cache: classifyCache, delayMs: aiDelayMs });
     for (const i of items) usedInRun.add(canonicalUrl(i.url));
     // Group headlines that report the same event, among the stories likely to be shown (the provisional top

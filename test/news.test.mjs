@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseFeed, buildSection, snippet, safeUrl, canonicalUrl, normalizeTitle, cleanText, urlAllowed, sameStory, titleTokens, isRoundup } from "../scripts/news.mjs";
+import { parseFeed, buildSection, snippet, safeUrl, canonicalUrl, normalizeTitle, cleanText, urlAllowed, sameStory, titleTokens, isRoundup, trimPool } from "../scripts/news.mjs";
 
 const rss = `<?xml version="1.0"?><rss version="2.0"><channel>
 <item><title>Quake hits coast &amp; city</title><link>https://a.example/news/1?utm=x</link>
@@ -229,4 +229,13 @@ test("keepTopics drops stories whose topic is not wanted, and keeps unrated ones
   const mk = (n, topic) => ({ title: `Distinct headline number ${n} about something`, snippet: "", url: `https://a.example/${n}`, source: `S${n}`, publishedAt: n, topic });
   const out = buildSection([mk(1, "economy"), mk(2, "politics"), mk(3, undefined), mk(4, "other")], { classify: { keepTopics: ["economy"] } });
   assert.deepEqual(out.map((i) => i.topic).sort(), ["economy", undefined]);
+});
+
+test("trimPool keeps each source's newest stories, with a larger allowance for sources that have several feeds", () => {
+  const mk = (source, n) => ({ title: `${source} story ${n}`, snippet: "", url: `https://${source}.example/${n}`, source, publishedAt: n });
+  const items = [...Array.from({ length: 10 }, (_, n) => mk("one", n)), ...Array.from({ length: 10 }, (_, n) => mk("many", n))];
+  const out = trimPool(items, (s) => (s === "many" ? 6 : 2));
+  assert.equal(out.filter((i) => i.source === "one").length, 2);
+  assert.equal(out.filter((i) => i.source === "many").length, 6);
+  assert.deepEqual(out.filter((i) => i.source === "one").map((i) => i.publishedAt).sort(), [8, 9], "the newest ones");
 });

@@ -158,6 +158,19 @@ const ROUNDUP = new RegExp(
 );
 export const isRoundup = (title) => ROUNDUP.test(title);
 
+// Each source's newest `limit(source)` stories, newest first. A source with several feeds under one name
+// (CNBC's seven section feeds) gets a proportionally larger pool, or its extra feeds would add nothing.
+export function trimPool(items, limit) {
+  const seen = new Map();
+  return [...items]
+    .sort((a, b) => b.publishedAt - a.publishedAt)
+    .filter((i) => {
+      const n = seen.get(i.source) ?? 0;
+      seen.set(i.source, n + 1);
+      return n < limit(i.source);
+    });
+}
+
 // The keys a story is recognised by across sources and sections: normalized title and canonical URL.
 export function storyKeys(item) {
   return [normalizeTitle(item.title), canonicalUrl(item.url)];
