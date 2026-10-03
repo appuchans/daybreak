@@ -73,7 +73,18 @@
           "name": "CBS News",
           "url": "https://www.cbsnews.com/latest/rss/main"
         }
-      ]
+      ],
+      "classify": {
+        "minImportance": 2,
+        "priorityTopics": [
+          "policy",
+          "politics",
+          "defense",
+          "incident"
+        ],
+        "priorityBonus": 2,
+        "guidance": "These items were collected for the US section of a news app whose readers are across the United States. scope: 'national' = of interest to readers across the country or involving the US government, military or foreign policy; 'state' = mainly one state; 'local' = a city, town or county matter; 'international' = an event outside the US with no US angle."
+      }
     },
     {
       "id": "tech",
@@ -168,7 +179,14 @@
           "international"
         ],
         "minImportance": 3,
-        "guidance": "These items were collected for the India section of a news app whose readers are across the whole country. scope: 'national' = of interest to readers across India (central government and Parliament, Supreme Court rulings, the national economy and markets, national security and foreign policy involving India, major disasters or crimes with national attention, national sports and culture events, national business news); 'state' = matters mainly within one state (state politics, state government decisions); 'local' = a city, town or district matter (local civic projects such as roads, bridges and railway crossings, local crime and accidents, local weather alerts, municipal elections and local institutions); 'international' = an event outside India with no India angle."
+        "guidance": "These items were collected for the India section of a news app whose readers are across the whole country. scope: 'national' = of interest to readers across India (central government and Parliament, Supreme Court rulings, the national economy and markets, national security and foreign policy involving India, major disasters or crimes with national attention, national sports and culture events, national business news); 'state' = matters mainly within one state (state politics, state government decisions); 'local' = a city, town or district matter (local civic projects such as roads, bridges and railway crossings, local crime and accidents, local weather alerts, municipal elections and local institutions); 'international' = an event outside India with no India angle.",
+        "priorityTopics": [
+          "policy",
+          "politics",
+          "defense",
+          "incident"
+        ],
+        "priorityBonus": 2
       }
     },
     {

@@ -39,3 +39,11 @@ test("the India section asks the AI to drop local and foreign stories", () => {
   assert.deepEqual(india.classify.dropScopes, ["local", "international"]);
   assert.ok(india.classify.minImportance >= 1 && india.classify.guidance.includes("local"));
 });
+
+test("US and India put government, politics, defense and incident stories first", () => {
+  for (const id of ["us", "india"]) {
+    const { classify } = config.sections.find((s) => s.id === id);
+    assert.deepEqual(classify.priorityTopics, ["policy", "politics", "defense", "incident"], id);
+    assert.ok(classify.priorityBonus >= 2, id);
+  }
+});

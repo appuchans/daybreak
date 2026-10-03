@@ -203,9 +203,11 @@ export function buildSection(items, { perSource = 4, perSection = 12, exclude = 
     taken.set(key, entry);
     taken.set(urlKey, entry);
   }
-  // Score = AI importance (3 when unrated) plus up to 2 for other outlets carrying the story. Ties go to the
+  // Score = AI importance (3 when unrated) plus up to 2 for other outlets carrying the story, plus the
+  // section's bonus when the story's topic is one it wants first (`classify.priorityTopics`). Ties go to the
   // source whose turn it is (each source's newest first), then to the newest story.
-  const score = (e) => (e.item.importance ?? 3) + Math.min(2, e.sources.size - 1);
+  const topicBonus = (e) => (classify?.priorityTopics?.includes(e.item.topic) ? (classify.priorityBonus ?? 1) : 0);
+  const score = (e) => (e.item.importance ?? 3) + Math.min(2, e.sources.size - 1) + topicBonus(e);
   return [...new Set(taken.values())]
     .sort((a, b) => score(b) - score(a) || a.sourceRank - b.sourceRank || b.item.publishedAt - a.item.publishedAt)
     .slice(0, perSection)
