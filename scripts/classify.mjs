@@ -6,7 +6,7 @@ import { generate, HaltGemini } from "./gemini.mjs";
 
 export const SCOPES = ["national", "state", "local", "international"];
 // Bump when the rubric changes, so answers given under an older one are asked again.
-export const CACHE_VERSION = 4;
+export const CACHE_VERSION = 5;
 export const FOCI = ["us", "india", "world"];
 export const TOPICS = ["policy", "politics", "defense", "incident", "economy", "other"];
 const BATCH = 40;

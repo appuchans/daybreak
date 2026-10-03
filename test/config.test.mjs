@@ -51,4 +51,5 @@ test("US and India put government, politics, defense and incident stories first"
 test("World drops stories that are mainly US or India domestic news", () => {
   const world = config.sections.find((s) => s.id === "world");
   assert.deepEqual(world.classify.dropFocus, ["us", "india"]);
+  assert.deepEqual(world.classify.dropScopes, ["state", "local"], "a story about one state or city is domestic news");
 });

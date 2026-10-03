@@ -42,11 +42,15 @@
       ],
       "classify": {
         "minImportance": 2,
+        "dropScopes": [
+          "state",
+          "local"
+        ],
         "dropFocus": [
           "us",
           "india"
         ],
-        "guidance": "These items were collected for the World section of a news app: international news. Stories that are mainly about the United States' or India's own domestic affairs belong to those countries' sections, even when a foreign outlet reported them."
+        "guidance": "These items were collected for the World section of a news app: international news. scope is judged within the story's own country: 'international' = involves several countries, the world as a whole, or a foreign country's affairs that matter beyond its borders; 'national' = one country's domestic affairs; 'state' = one state, province or region of a country (for example a US state such as California, or an Indian state); 'local' = a city, town or district. Wars, disasters and crises of international interest are 'international' wherever they happen. Stories that are mainly about the United States' or India's own domestic affairs belong to those countries' sections, even when a foreign outlet reported them."
       }
     },
     {
