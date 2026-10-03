@@ -158,6 +158,11 @@ const ROUNDUP = new RegExp(
 );
 export const isRoundup = (title) => ROUNDUP.test(title);
 
+// Journal tables of contents (The Lancet) mix papers with editorials, comments, letters and obituaries.
+// Those are neither news nor research findings, so they are skipped.
+const JOURNAL_CHATTER = /^\[(?:comment|editorial|correspondence|obituary|offline|perspective|world report|editors' note)\]/i;
+export const isJournalChatter = (title) => JOURNAL_CHATTER.test(title.trim());
+
 // Each source's newest `limit(source)` stories, newest first. A source with several feeds under one name
 // (CNBC's seven section feeds) gets a proportionally larger pool, or its extra feeds would add nothing.
 export function trimPool(items, limit) {
@@ -194,7 +199,7 @@ export function buildSection(items, { perSource = 4, perSection = 12, exclude = 
       (!it.topic || !classify.keepTopics || classify.keepTopics.includes(it.topic)) &&
       (it.importance === undefined || it.importance >= (classify.minImportance ?? 1)));
   const fresh = items.filter(
-    (it) => !isRoundup(it.title) && !storyKeys(it).some((k) => exclude.has(k)) && (maxAgeHours === undefined || now - it.publishedAt <= maxAgeHours * 3_600_000) && wanted(it),
+    (it) => !isRoundup(it.title) && !isJournalChatter(it.title) && !storyKeys(it).some((k) => exclude.has(k)) && (maxAgeHours === undefined || now - it.publishedAt <= maxAgeHours * 3_600_000) && wanted(it),
   );
   // Cluster the same story first (exact title/URL, similar wording, or a shared AI eventId), newest first so
   // the newest report represents the cluster. The per-source cap comes after ranking, not before: capping at a

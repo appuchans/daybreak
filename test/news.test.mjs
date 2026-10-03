@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseFeed, buildSection, snippet, safeUrl, canonicalUrl, normalizeTitle, cleanText, urlAllowed, sameStory, titleTokens, isRoundup, trimPool } from "../scripts/news.mjs";
+import { parseFeed, buildSection, snippet, safeUrl, canonicalUrl, normalizeTitle, cleanText, urlAllowed, sameStory, titleTokens, isRoundup, isJournalChatter, trimPool } from "../scripts/news.mjs";
 
 const rss = `<?xml version="1.0"?><rss version="2.0"><channel>
 <item><title>Quake hits coast &amp; city</title><link>https://a.example/news/1?utm=x</link>
@@ -247,4 +247,9 @@ test("the per-source cap applies after ranking: a source's important older story
   assert.equal(out[0].importance, 5, "the oldest story is first because it matters most");
   assert.equal(out.filter((i) => i.source === "A").length, 4, "still at most perSource from one source");
   assert.ok(out.some((i) => i.source === "B"));
+});
+
+test("isJournalChatter skips journal comments and editorials, not papers", () => {
+  for (const t of ["[Comment] Combining immunotherapy with radiation in lung cancer", "[Editorial] The week in science", "[Correspondence] A reply", "[Obituary] A pioneer of surgery"]) assert.ok(isJournalChatter(t), t);
+  for (const t of ["Survodutide Once Weekly in Adults with Obesity and Type 2 Diabetes", "Effects of semaglutide on kidney disease: a randomized trial", "Comment sections are changing news"]) assert.ok(!isJournalChatter(t), t);
 });

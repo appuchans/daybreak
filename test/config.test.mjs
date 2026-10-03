@@ -66,4 +66,5 @@ test("Health reserves room for research and pharma stories", () => {
   assert.deepEqual(classify.reserve.topics, ["research", "pharma"]);
   assert.ok(classify.reserve.count >= 4);
   assert.deepEqual(classify.priorityTopics, ["research", "pharma"]);
+  assert.equal(classify.priorityBonus, 0, "the reserve is the guarantee; a bonus on top crowded out public-health news");
 });
