@@ -1,4 +1,72 @@
 [
- {"section":"world","name":"DW","url":"https://rss.dw.com/rdf/rss-en-all"},
- {"section":"world","name":"DW World","url":"https://rss.dw.com/rdf/rss-en-world"}
+ {
+  "section": "india",
+  "name": "The Hindu national",
+  "url": "https://www.thehindu.com/news/national/feeder/default.rss"
+ },
+ {
+  "section": "india",
+  "name": "The Hindu all",
+  "url": "https://www.thehindu.com/feeder/default.rss"
+ },
+ {
+  "section": "india",
+  "name": "TOI top stories",
+  "url": "https://timesofindia.indiatimes.com/rssfeedstopstories.cms"
+ },
+ {
+  "section": "india",
+  "name": "TOI India",
+  "url": "https://timesofindia.indiatimes.com/rssfeeds/-2128936835.cms"
+ },
+ {
+  "section": "india",
+  "name": "NDTV top stories",
+  "url": "https://feeds.feedburner.com/ndtvnews-top-stories"
+ },
+ {
+  "section": "india",
+  "name": "NDTV India",
+  "url": "https://feeds.feedburner.com/ndtvnews-india-news"
+ },
+ {
+  "section": "india",
+  "name": "HT top news",
+  "url": "https://www.hindustantimes.com/feeds/rss/topnews/rssfeed.xml"
+ },
+ {
+  "section": "india",
+  "name": "HT india-news",
+  "url": "https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml"
+ },
+ {
+  "section": "india",
+  "name": "HT business",
+  "url": "https://www.hindustantimes.com/feeds/rss/business/rssfeed.xml"
+ },
+ {
+  "section": "india",
+  "name": "Mint companies",
+  "url": "https://www.livemint.com/rss/companies"
+ },
+ {
+  "section": "india",
+  "name": "Mint economy",
+  "url": "https://www.livemint.com/rss/economy"
+ },
+ {
+  "section": "india",
+  "name": "ET industry",
+  "url": "https://economictimes.indiatimes.com/industry/rssfeeds/13352306.cms"
+ },
+ {
+  "section": "india",
+  "name": "ET economy",
+  "url": "https://economictimes.indiatimes.com/news/economy/rssfeeds/1373380680.cms"
+ },
+ {
+  "section": "india",
+  "name": "BusinessLine",
+  "url": "https://www.thehindubusinessline.com/feeder/default.rss"
+ }
 ]

@@ -23,7 +23,14 @@ const rows = await Promise.all(
       const img = Math.round((items.filter((i) => i.image).length / items.length) * 100);
       const bad = items.filter((i) => SUSPECT.test(i.title) || SUSPECT.test(i.snippet));
       const suspect = bad.length ? ` SUSPECT=${bad.length} e.g. ${JSON.stringify((SUSPECT.test(bad[0].title) ? bad[0].title : bad[0].snippet).slice(0, 90))}` : "";
-      return `${f.section}\t${f.name}\tOK items=${items.length} newest=${hours}h img=${img}%${suspect}\t${items[0].title.slice(0, 70)}`;
+      // Which parts of the publisher's site the items come from, e.g. "india-news:12 cities:5".
+      const paths = new Map();
+      for (const i of items) {
+        const key = new URL(i.url).pathname.split("/").filter(Boolean).slice(0, 2).join("/") || "/";
+        paths.set(key, (paths.get(key) ?? 0) + 1);
+      }
+      const where = [...paths].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([k, n]) => `${k}:${n}`).join(" ");
+      return `${f.section}\t${f.name}\tOK items=${items.length} newest=${hours}h img=${img}%${suspect}\t${where}`;
     } catch (err) {
       return `${f.section}\t${f.name}\tFAIL ${err.message ?? err}\t${f.url}`;
     }
