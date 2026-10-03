@@ -4,6 +4,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { parseFeed, buildSection, storyKeys, urlAllowed, canonicalUrl } from "./news.mjs";
 import { geminiCaller, summarizeSections } from "./summarize.mjs";
 import { classifyItems, geminiClassifier } from "./classify.mjs";
+import { enrichSnippets } from "./describe.mjs";
 
 const config = JSON.parse(await readFile(process.env.FEEDS_CONFIG ?? new URL("./feeds.json", import.meta.url), "utf8"));
 const previous = await readFile(process.env.PREVIOUS_NEWS ?? "previous-news.json", "utf8")
@@ -83,6 +84,12 @@ for (const section of [...config.sections].reverse()) {
 }
 
 if (failedSections > 0) process.exit(1);
+
+// Missing descriptions are read from the article pages (no key needed), before summaries use them.
+{
+  const stats = await enrichSnippets(sections, { previous, maxPerRun: process.env.DESCRIBE_MAX_PER_RUN ? Number(process.env.DESCRIBE_MAX_PER_RUN) : 30 });
+  console.log(`Descriptions: reused=${stats.reused} fetched=${stats.fetched} failed=${stats.failed} skipped=${stats.skipped}`);
+}
 
 // Optional AI summaries: off unless GEMINI_API_KEY is set (a repository secret in the workflow).
 if (process.env.GEMINI_API_KEY) {

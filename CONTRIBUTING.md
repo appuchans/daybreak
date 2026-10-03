@@ -33,6 +33,14 @@ cp news.json site/ && cd site && python3 -m http.server 8000
 - India-based outlets feed the India section only, through their India-specific feeds. `test/config.test.mjs` fails if one is added elsewhere.
 - Feeds that share a `name` count as one source for ranking. RSS 2.0, RSS 1.0 (RDF) and Atom are parsed.
 
+## Missing descriptions
+
+`scripts/describe.mjs`, no API key needed. Some feeds send an empty description (Times of India's, for one), which left a long headline with nothing under it. For the published stories whose snippet is under 40 characters, the build reads the article page's `og:description` (then `twitter:description`, then `name=description`, which is often truncated).
+
+- Only the top of the page is read (stops at `</head>`, at most 150 KB), one page at a time, 300 ms apart, at most 30 pages per build (`DESCRIBE_MAX_PER_RUN`), with a `DaybreakBot` user agent that links to this repository.
+- Earlier answers are reused from the previously published `news.json`. A description that is short, copies the headline, or repeats across different stories (site boilerplate) is discarded.
+- Fails open: a blocked page, timeout or missing tag leaves the snippet empty. The log line `Descriptions: reused=… fetched=… failed=… skipped=…` shows how it went. `robots.txt` is not consulted; this is the same single request a link preview makes for a page the card already links to.
+
 ## AI classification (Gemini)
 
 `scripts/classify.mjs`, run for every section when `GEMINI_API_KEY` is set. Only India has a `classify` block today. Gemini rates each candidate headline's `scope` (national, state, local, international), `importance` (1 to 5) and `clickbait` (true when the headline hides or distorts what the story is about). With a key every section is rated (sections without a `classify` block use a generic guidance text and drop nothing); in a section with a `classify` block, the section's `guidance` text applies, `dropScopes` and `minImportance` decide what is removed, and `importance` breaks ties after corroboration in the ranking.

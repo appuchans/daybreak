@@ -31,7 +31,7 @@ Only public headlines and descriptions are sent to Gemini. On Google's free tier
 
 Each section combines feeds from five to nine news outlets. Stories reported by several outlets come first (the more outlets cover something, the more important it is treated), then each outlet's newest story, so no single outlet fills a section. Anything older than three days is dropped, and a story shows up in one section only. Indian outlets appear in the India section only.
 
-Daybreak keeps just the headline, a one-line summary, the link, the outlet's name and a picture link. The stories belong to their publishers.
+When a publisher's feed leaves out the description, Daybreak reads the one-line preview description from the article page itself. Daybreak keeps just the headline, a one-line summary, the link, the outlet's name and a picture link. The stories belong to their publishers.
 
 ## Run your own copy
 

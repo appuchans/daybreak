@@ -25,7 +25,7 @@ async function withServer(routes, fn) {
 async function build(dir, config, previous, extraEnv = {}) {
   const cfg = join(dir, "feeds.json");
   await writeFile(cfg, JSON.stringify(config));
-  const env = { ...process.env, GEMINI_API_KEY: "", FEEDS_CONFIG: cfg, PREVIOUS_NEWS: join(dir, "previous-news.json"), ...extraEnv };
+  const env = { ...process.env, GEMINI_API_KEY: "", DESCRIBE_MAX_PER_RUN: "0", FEEDS_CONFIG: cfg, PREVIOUS_NEWS: join(dir, "previous-news.json"), ...extraEnv };
   if (previous) await writeFile(env.PREVIOUS_NEWS, JSON.stringify(previous));
   return run("node", [script], { cwd: dir, env }).then(
     async (r) => ({ code: 0, news: JSON.parse(await readFile(join(dir, "news.json"), "utf8")), out: r.stdout }),
@@ -147,4 +147,22 @@ test("AI classification drops a local story from a classified section and caches
       assert.ok(!JSON.stringify(r.news).includes("TOPSECRET") && !JSON.stringify(cache).includes("TOPSECRET"));
     });
   } finally { gemini.close(); }
+});
+
+test("an item with no description gets the article page's description, without any API key", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "daybreak-"));
+  const page = "Union home minister said the full implementation of the new criminal laws would speed up cases.";
+  const pages = createServer((req, res) => { res.setHeader("content-type", "text/html"); res.end(`<html><head><meta property="og:description" content="${page}"></head><body>x</body></html>`); });
+  await new Promise((r) => pages.listen(0, "127.0.0.1", r));
+  try {
+    const link = `http://127.0.0.1:${pages.address().port}/article`;
+    const feed = `<rss version="2.0"><channel><item><title>A long headline without any description at all</title><link>${link}</link><pubDate>Sat, 03 Oct 2026 08:00:00 GMT</pubDate></item></channel></rss>`;
+    await withServer({ "/a": feed }, async (feedBase) => {
+      const config = { perSource: 4, perSection: 12, sections: [{ id: "india", label: "India", feeds: [{ name: "A", url: `${feedBase}/a` }] }] };
+      const r = await build(dir, config, null, { DESCRIBE_MAX_PER_RUN: "5" });
+      assert.equal(r.code, 0);
+      assert.equal(r.news.sections.india.items[0].snippet, page);
+      assert.ok(r.out.includes("Descriptions: reused=0 fetched=1"));
+    });
+  } finally { pages.close(); }
 });
