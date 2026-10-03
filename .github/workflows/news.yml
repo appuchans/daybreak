@@ -30,8 +30,6 @@ jobs:
       - name: Fetch previously published news.json
         run: curl -fsSL "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/news.json" -o previous-news.json || true
       - run: node scripts/build-news.mjs
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       - name: Assemble site
         run: |
           mkdir _site

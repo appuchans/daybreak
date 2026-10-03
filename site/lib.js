@@ -30,9 +30,7 @@ export function storyHtml(s, lead = false) {
     ? `<img class="thumb" src="${esc(lead ? heroImage(image) : image)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">`
     : "";
   const also = s.alsoReportedBy?.length ? `<div class="also">Also reported by ${esc(s.alsoReportedBy.join(", "))}</div>` : "";
-  const snippet = typeof s.aiSummary === "string" && s.aiSummary
-    ? `<p><span class="ai-tag">AI summary</span> ${esc(s.aiSummary)}</p>`
-    : s.snippet ? `<p>${esc(s.snippet)}</p>` : "";
+  const snippet = s.snippet ? `<p>${esc(s.snippet)}</p>` : "";
   return (
     `<a class="story${lead ? " lead" : ""}${img ? " has-img" : ""}" href="${esc(safeHref(s.url))}" target="_blank" rel="noopener noreferrer">` +
     `${img}<div class="txt"><div class="meta">${esc(s.source)}</div><h2>${esc(s.title)}</h2>${snippet}${also}</div></a>`

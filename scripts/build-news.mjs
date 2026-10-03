@@ -2,7 +2,6 @@
 // items from the previous published news.json, so one dead source never empties a section.
 import { readFile, writeFile } from "node:fs/promises";
 import { parseFeed, buildSection, storyKeys } from "./news.mjs";
-import { geminiCaller, summarizeSections } from "./summarize.mjs";
 
 const config = JSON.parse(await readFile(process.env.FEEDS_CONFIG ?? new URL("./feeds.json", import.meta.url), "utf8"));
 const previous = await readFile(process.env.PREVIOUS_NEWS ?? "previous-news.json", "utf8")
@@ -58,14 +57,5 @@ for (const section of [...config.sections].reverse()) {
 }
 
 if (failedSections > 0) process.exit(1);
-
-// Optional AI summaries: off unless GEMINI_API_KEY is set (a repository secret in the workflow).
-if (process.env.GEMINI_API_KEY) {
-  const call = geminiCaller({ apiKey: process.env.GEMINI_API_KEY, model: process.env.GEMINI_MODEL || undefined, baseUrl: process.env.GEMINI_BASE_URL || undefined });
-  const stats = await summarizeSections(sections, { call, previous, maxNew: Number(process.env.SUMMARY_MAX_PER_RUN) || 30, delayMs: process.env.SUMMARY_DELAY_MS ? Number(process.env.SUMMARY_DELAY_MS) : 4000 });
-  console.log(`AI summaries: reused=${stats.reused} added=${stats.added} skipped=${stats.skipped} failed=${stats.failed}${stats.halted ? ` halted="${stats.halted}"` : ""}`);
-} else {
-  console.log("AI summaries: off (GEMINI_API_KEY not set)");
-}
 await writeFile("news.json", JSON.stringify({ generatedAt: new Date().toISOString(), order: config.sections.map((s) => s.id), sections: Object.fromEntries(config.sections.map((s) => [s.id, sections[s.id]])), feedStatus: status }, null, 1));
 console.log(`wrote news.json: ${Object.entries(sections).map(([k, v]) => `${k}=${v.items.length}`).join(" ")}`);

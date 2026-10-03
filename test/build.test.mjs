@@ -22,10 +22,10 @@ async function withServer(routes, fn) {
   try { await fn(`http://127.0.0.1:${server.address().port}`); } finally { server.close(); }
 }
 
-async function build(dir, config, previous, extraEnv = {}) {
+async function build(dir, config, previous) {
   const cfg = join(dir, "feeds.json");
   await writeFile(cfg, JSON.stringify(config));
-  const env = { ...process.env, GEMINI_API_KEY: "", FEEDS_CONFIG: cfg, PREVIOUS_NEWS: join(dir, "previous-news.json"), ...extraEnv };
+  const env = { ...process.env, FEEDS_CONFIG: cfg, PREVIOUS_NEWS: join(dir, "previous-news.json") };
   if (previous) await writeFile(env.PREVIOUS_NEWS, JSON.stringify(previous));
   return run("node", [script], { cwd: dir, env }).then(
     async (r) => ({ code: 0, news: JSON.parse(await readFile(join(dir, "news.json"), "utf8")), out: r.stdout }),
@@ -78,28 +78,5 @@ test("a story carried by two sections is kept only in the later tab, and the ear
     assert.ok(titles("india").includes("Shared incident"));
     assert.ok(!titles("world").includes("Shared incident"));
     assert.deepEqual(titles("world").sort(), ["World backfill", "World only"]);
-  });
-});
-
-test("AI summaries: off without a key, added with one, and the key never reaches news.json", async () => {
-  const long = "A description long enough to be worth summarizing, with plenty of detail beyond the headline itself.";
-  const xml = `<rss version="2.0"><channel><item><title>Story</title><link>https://x.example/s</link><description>${long}</description><pubDate>Sat, 03 Oct 2026 08:00:00 GMT</pubDate></item></channel></rss>`;
-  await withServer({ "/a": xml }, async (base) => {
-    const config = { perSource: 4, perSection: 12, sections: [{ id: "world", label: "World", feeds: [{ name: "A", url: `${base}/a` }] }] };
-    const off = await build(await mkdtemp(join(tmpdir(), "daybreak-")), config, null);
-    assert.equal(off.code, 0);
-    assert.equal(off.news.sections.world.items[0].aiSummary, undefined);
-    assert.ok(off.out.includes("AI summaries: off"));
-
-    const gemini = createServer((req, res) => { res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ candidates: [{ content: { parts: [{ text: "One sentence summary." }] } }] })); });
-    await new Promise((r) => gemini.listen(0, "127.0.0.1", r));
-    try {
-      const on = await build(await mkdtemp(join(tmpdir(), "daybreak-")), config, null, { GEMINI_API_KEY: "TOPSECRET", GEMINI_BASE_URL: `http://127.0.0.1:${gemini.address().port}`, SUMMARY_DELAY_MS: "0" });
-      assert.equal(on.code, 0);
-      assert.equal(on.news.sections.world.items[0].aiSummary, "One sentence summary.");
-      assert.ok(on.out.includes("AI summaries: reused=0 added=1"));
-      assert.ok(!JSON.stringify(on.news).includes("TOPSECRET"));
-      assert.ok(!on.out.includes("TOPSECRET"));
-    } finally { gemini.close(); }
   });
 });

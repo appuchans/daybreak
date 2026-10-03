@@ -11,11 +11,6 @@ Top news on your phone, in six sections: World, US, Tech, India, Business and He
 - Dark and light themes that follow your phone's setting.
 - Works offline with the last stories it loaded.
 - Updates about every 30 minutes.
-- Optional one-sentence AI summaries, labelled as such (see below).
-
-## AI summaries (optional)
-
-When a Gemini API key is set up, new stories get a one-sentence summary written by Google's Gemini model, shown with an "AI summary" label in place of the publisher's own description. Only the public headline and description are sent to Gemini. On Google's free tier, content sent to the API may be used to improve Google's products. A model can get details wrong, so check the story itself before relying on a summary. With no key, or if Gemini is unavailable, the page shows the publisher's own description.
 
 ## Put it on your phone's home screen
 
@@ -38,8 +33,6 @@ Daybreak has no server, so your own copy is a fork plus GitHub Pages:
 4. In the Actions tab, run "Build and deploy" once. Your site appears at `https://<your-user>.github.io/<repo-name>/` when it finishes.
 
 After that it updates itself about every 30 minutes. If a source stops working, the run log names it.
-
-To turn on AI summaries, create a free Gemini API key in Google AI Studio and add it to your fork as a repository secret named `GEMINI_API_KEY` (Settings, Secrets and variables, Actions). Remove the secret to turn them off again.
 
 ## Choose your own sources
 
