@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Daybreak News</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Public+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: single-column phone feed, lead story first, sticky section tabs. */
+:root{
+  --bg:#f6f7f9; --card:#ffffff; --fg:#14181f; --muted:#5b6573; --line:#dde1e8; --accent:#0b5fff; --accent-fg:#ffffff;
+  --display:'Fraunces',Georgia,serif; --body:'Public Sans',system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1116;--card:#171b22;--fg:#eceff4;--muted:#9aa5b4;--line:#2a313c;--accent:#6c9bff;--accent-fg:#0e1116;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1116;--card:#171b22;--fg:#eceff4;--muted:#9aa5b4;--line:#2a313c;--accent:#6c9bff;--accent-fg:#0e1116;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;padding-inline:16px;padding-block:0 32px}
+.wrap{max-width:640px;margin-inline:auto}
+header{padding-block:20px 12px}
+.date{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+h1{font-family:var(--display);font-size:32px;line-height:1.1;margin:4px 0 0;text-wrap:balance}
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);display:flex;gap:8px;overflow-x:auto;padding-block:10px;z-index:2;border-bottom:1px solid var(--line);scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;border:1px solid var(--line);background:var(--card);color:var(--fg);font:500 14px var(--body);padding:8px 14px;border-radius:999px;cursor:pointer}
+.tab[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.tab:focus-visible,.story:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+main{display:flex;flex-direction:column;gap:12px;padding-block:16px}
+.story{display:block;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;color:inherit;text-decoration:none}
+.story h2{font-family:var(--display);font-size:19px;line-height:1.25;margin:6px 0;text-wrap:balance}
+.story p{margin:0;color:var(--muted);font-size:15px}
+.meta{display:flex;gap:8px;flex-wrap:wrap;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.meta span:last-child{color:var(--muted)}
+.lead h2{font-size:26px}
+.note{font-size:13px;color:var(--muted);padding-block:8px}
+</style>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="date" id="date">Saturday, 3 October 2026</div><h1>Daybreak News</h1></header>
+<nav class="tabs" id="tabs" aria-label="Sections"></nav>
+<main id="feed"></main>
+<p class="note">Snapshot of stories gathered on 3 October 2026. Each card links to the original source.</p>
+</div>
+<script>
+var S=[
+{c:"World",src:"ABC News",t:"Iran live updates: Trump says war will be over 'very soon,' but offers no details",d:"Latest from the Iran conflict as of Oct 1, including the Saudi foreign minister's arrival in the US.",u:"https://abcnews.com/International/live-updates/iran-live-updates-saudi-foreign-minister-arrives-us/?id=136814503"},
+{c:"US",src:"ABC News",t:"Top Democrats battle over California's proposed billionaire tax",d:"Sanders and Khanna rally for a one-time 5% wealth tax as early voting opens; Gov. Newsom opposes the state measure.",u:"https://abcnews.com/Politics/top-democrats-battle-californias-proposed-billionaire-tax/story?id=136951176"},
+{c:"US",src:"ABC News",t:"Christa Pike unconscious and on ventilator after botched execution, attorneys say",d:"Tennessee's only woman on death row; the execution was paused amid a federal challenge.",u:"https://abcnews.com/US/execution-lone-woman-tennessees-death-row-paused-federal/story?id=136893331"},
+{c:"World",src:"Education Times",t:"US announces $24.4 billion contract to speed up missile production",d:"The Defense Department says the agreement will support faster manufacturing of air and surface defence missiles.",u:"https://www.educationtimes.com/news/school-assembly-news-headlines-for-october-3-2026-top-national-international-business-and-sports-updates/articleshow/134635640.cms"},
+{c:"India",src:"Education Times",t:"Delhi launches AI-based pollution monitoring control centre",d:"The centre will track sources of air pollution in real time using AI analysis.",u:"https://www.educationtimes.com/news/school-assembly-news-headlines-for-october-3-2026-top-national-international-business-and-sports-updates/articleshow/134635640.cms"},
+{c:"India",src:"Education Times",t:"Jammu–Srinagar Vande Bharat reaches 100 kmph over Chenab and Anji bridges",d:"A milestone for rail connectivity in Jammu and Kashmir.",u:"https://www.educationtimes.com/news/school-assembly-news-headlines-for-october-3-2026-top-national-international-business-and-sports-updates/articleshow/134635640.cms"},
+{c:"Business",src:"Education Times",t:"Anup Bagchi to become HDFC Bank MD and CEO from October 27",d:"He succeeds Sashidhar Jagdishan after Reserve Bank of India approval.",u:"https://www.educationtimes.com/news/school-assembly-news-headlines-for-october-3-2026-top-national-international-business-and-sports-updates/articleshow/134635640.cms"},
+{c:"Business",src:"Education Times",t:"GST Council to consider input tax credit relief proposals on October 7",d:"Proposals under discussion, not yet approved, cover certain employee insurance and catering expenses.",u:"https://www.educationtimes.com/news/school-assembly-news-headlines-for-october-3-2026-top-national-international-business-and-sports-updates/articleshow/134635640.cms"},
+{c:"Business",src:"EnergyNow",t:"Canada to fast-track oil pipeline to diversify economy away from the US",d:"Also in the energy wire: how a bruising third quarter failed to halt Wall Street.",u:"https://energynow.com/2026/10/canada-to-fast-track-oil-pipeline-designed-to-diversify-economy-away-from-us/"},
+{c:"Sports",src:"Education Times",t:"Lovlina Borgohain wins Asian Games 75 kg boxing gold",d:"A 5-0 decision over China's Bao Ziyi ends India's 12-year wait for a women's boxing gold.",u:"https://www.educationtimes.com/news/school-assembly-news-headlines-for-october-3-2026-top-national-international-business-and-sports-updates/articleshow/134635640.cms"},
+{c:"Sports",src:"Education Times",t:"India's women's recurve team wins first Asian Games gold in the event",d:"Kumkum Mohod, Ankita Bhakat and Kirti Sharma beat South Korea 5-2.",u:"https://www.educationtimes.com/news/school-assembly-news-headlines-for-october-3-2026-top-national-international-business-and-sports-updates/articleshow/134635640.cms"},
+{c:"Sports",src:"Education Times",t:"India beats Sri Lanka by 124 runs, will face Pakistan in Asian Games cricket final",d:"The gold-medal match is set for the men's tournament.",u:"https://www.educationtimes.com/news/school-assembly-news-headlines-for-october-3-2026-top-national-international-business-and-sports-updates/articleshow/134635640.cms"}
+];
+var cats=["Top"].concat(["World","US","India","Business","Sports"]),cur="Top";
+var tabs=document.getElementById("tabs"),feed=document.getElementById("feed");
+try{cur=localStorage.getItem("dn-tab")||"Top"}catch(e){}
+function esc(s){return s.replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function render(){
+  tabs.innerHTML=cats.map(function(c){return '<button class="tab" aria-pressed="'+(c===cur)+'" data-c="'+c+'">'+c+'</button>'}).join("");
+  var list=cur==="Top"?S.slice(0,6):S.filter(function(s){return s.c===cur});
+  feed.innerHTML=list.map(function(s,i){return '<a class="story'+(i===0&&cur==="Top"?' lead':'')+'" href="'+s.u+'" target="_blank" rel="noopener"><div class="meta"><span>'+s.c+'</span><span>'+esc(s.src)+'</span></div><h2>'+esc(s.t)+'</h2><p>'+esc(s.d)+'</p></a>'}).join("");
+}
+tabs.addEventListener("click",function(e){var b=e.target.closest(".tab");if(!b)return;cur=b.dataset.c;try{localStorage.setItem("dn-tab",cur)}catch(x){}render();window.scrollTo(0,0)});
+render();
+</script>
+</body>
+</html>
