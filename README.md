@@ -36,11 +36,16 @@ test/       node:test suites for scripts/ and site/lib.js
 PLAN.md     status and roadmap
 ```
 
-## Setup (once)
+## Run your own copy
 
-1. Make the repository public (free GitHub Pages needs it).
-2. Settings, Pages, Source: **GitHub Actions**.
-3. Run the "Build and deploy" workflow once from the Actions tab, or push to `main`. Its log lists any feed that failed as a `::warning::` line.
+Daybreak has no server, so your own copy is a fork plus GitHub Pages:
+
+1. Fork this repository (or use it as a template). It must be public to use free GitHub Pages.
+2. In your fork, open the Actions tab and enable workflows. GitHub turns them off in forks by default.
+3. Open Settings, then Pages, and set the source to **GitHub Actions**.
+4. In the Actions tab, run "Build and deploy" once. Your site appears at `https://<your-user>.github.io/<repo-name>/` when it finishes.
+
+After that it updates itself about every 30 minutes. If a feed stops working, the run log shows a `::warning::` line naming it. Edit `scripts/feeds.json` to change the sources (see below).
 
 ## Develop
 
