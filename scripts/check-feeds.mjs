@@ -4,6 +4,9 @@
 import { readFile } from "node:fs/promises";
 import { parseFeed } from "./news.mjs";
 
+// Text that survived parsing but still looks like markup, entities or mis-decoded bytes.
+const SUSPECT = /&#?\w+;|<\/?[a-z]|\u00e2\u20ac|\u00c3.|\u00c2|\ufffd/i;
+
 const list = JSON.parse(await readFile(process.argv[2], "utf8"));
 const rows = await Promise.all(
   list.map(async (f) => {
@@ -18,7 +21,9 @@ const rows = await Promise.all(
       const newest = Math.max(...items.map((i) => i.publishedAt));
       const hours = Math.round((Date.now() - newest) / 3_600_000);
       const img = Math.round((items.filter((i) => i.image).length / items.length) * 100);
-      return `${f.section}\t${f.name}\tOK items=${items.length} newest=${hours}h img=${img}%\t${items[0].title.slice(0, 70)}`;
+      const bad = items.filter((i) => SUSPECT.test(i.title) || SUSPECT.test(i.snippet));
+      const suspect = bad.length ? ` SUSPECT=${bad.length} e.g. ${JSON.stringify((SUSPECT.test(bad[0].title) ? bad[0].title : bad[0].snippet).slice(0, 90))}` : "";
+      return `${f.section}\t${f.name}\tOK items=${items.length} newest=${hours}h img=${img}%${suspect}\t${items[0].title.slice(0, 70)}`;
     } catch (err) {
       return `${f.section}\t${f.name}\tFAIL ${err.message ?? err}\t${f.url}`;
     }
