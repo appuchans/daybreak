@@ -4,7 +4,7 @@
 import { cleanText, canonicalUrl, normalizeTitle, snippet } from "./news.mjs";
 
 export const MIN_DESCRIPTION = 40;
-const USER_AGENT = "DaybreakBot/1.0 (+https://github.com/appuchans/daybreak)";
+const USER_AGENT = "DaybreakBot/1.0 (+https://github.com/mysteriboks/daybreak)";
 
 function attrs(tag) {
   const out = {};

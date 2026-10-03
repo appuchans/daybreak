@@ -13,7 +13,7 @@ const rows = await Promise.all(
     try {
       const res = await fetch(f.url, {
         signal: AbortSignal.timeout(15_000),
-        headers: { "User-Agent": "DaybreakBot/1.0 (+https://github.com/appuchans/daybreak)", Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml" },
+        headers: { "User-Agent": "DaybreakBot/1.0 (+https://github.com/mysteriboks/daybreak)", Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml" },
       });
       if (!res.ok) return `${f.section}\t${f.name}\tFAIL HTTP ${res.status}\t${f.url}`;
       const items = parseFeed(await res.text(), f.name);

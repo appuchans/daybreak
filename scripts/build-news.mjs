@@ -15,7 +15,7 @@ const previous = await readFile(process.env.PREVIOUS_NEWS ?? "previous-news.json
 async function fetchFeed(feed) {
   const res = await fetch(feed.url, {
     signal: AbortSignal.timeout(10_000),
-    headers: { "User-Agent": "DaybreakBot/1.0 (+https://github.com/appuchans/daybreak)", Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml" },
+    headers: { "User-Agent": "DaybreakBot/1.0 (+https://github.com/mysteriboks/daybreak)", Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml" },
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const items = parseFeed(await res.text(), feed.name).filter((i) => urlAllowed(i.url, feed));

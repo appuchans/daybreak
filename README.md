@@ -2,7 +2,7 @@
 
 Top news on your phone, in six sections: World, US, Tech, India, Business and Health. It is free to use and free to run: no accounts, no ads, no API keys.
 
-**Live:** https://appuchans.github.io/daybreak/
+**Live:** https://mysteriboks.github.io/daybreak/
 
 ## What you get
 
