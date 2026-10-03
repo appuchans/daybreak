@@ -81,6 +81,10 @@ cp news.json site/ && cd site && python3 -m http.server 8000
 
 Used: NYT Business and Economy, CNBC (top news, business, finance, earnings, energy, investing, world business), BBC, Guardian, NPR, MarketWatch top stories. The Business section requires the AI topic `economy` and importance 3 or more, which removes the personal-finance, lifestyle and misfiled stories those feeds also carry. Rejected after vetting: WSJ Markets / US Business and MarketWatch real-time / market-pulse (their feeds stopped updating about 20 months ago), Yahoo Finance (stale), Business Insider (lifestyle), Forbes (contributor blogs), Fortune (career features), The Economist (weekly), Axios and Al Jazeera (general news). NYT links may be paywalled for readers even though the feed is free.
 
+## Health sources (vetted 2026-10-03)
+
+Health is meant to cover research and pharma as well as health news. Sources: BBC, NPR, KFF Health News, STAT; pharma and biotech (BioPharma Dive, GEN, FDA press announcements); research (Medical Xpress, News-Medical, ScienceDaily health and pharmacology, MedPage Today, Nature, Nature Medicine, The Lancet, NEJM). The classifier labels stories `research` or `pharma`, those topics get a ranking bonus, and `classify.reserve` guarantees at least 5 of the 12 cards on them when that many exist; wellness and lifestyle stories score 2 and are dropped. Journal feeds (Lancet, NEJM, Nature Medicine) are tables of contents with paper-style titles. Rejected: Fierce Pharma and Fierce Biotech (no parseable items), Endpoints and NIH (403), EurekAlert and the FDA drug-approvals feed (404), Guardian and BBC science (too general).
+
 ## Known limits
 
 - Indian outlets' feeds are filtered by URL section only, so a regional or foreign story filed under a national section still gets through; there is no classifier. Mint was dropped because its company and economy feeds are mostly global news.

@@ -60,3 +60,10 @@ test("Business keeps only economy-topic stories and drops minor, personal-financ
   assert.ok(classify.minImportance >= 3);
   assert.ok(classify.guidance.includes("personal-finance"));
 });
+
+test("Health reserves room for research and pharma stories", () => {
+  const { classify } = config.sections.find((s) => s.id === "health");
+  assert.deepEqual(classify.reserve.topics, ["research", "pharma"]);
+  assert.ok(classify.reserve.count >= 4);
+  assert.deepEqual(classify.priorityTopics, ["research", "pharma"]);
+});

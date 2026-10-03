@@ -230,14 +230,29 @@ export function buildSection(items, { perSource = 4, perSection = 12, exclude = 
     list.sort((a, b) => score(b) - score(a) || b.item.publishedAt - a.item.publishedAt);
     list.forEach((e, i) => (e.sourceRank = i));
   }
+  const ordered = entries.sort((a, b) => score(b) - score(a) || a.sourceRank - b.sourceRank || b.item.publishedAt - a.item.publishedAt);
   const picked = [];
   const used = new Map();
-  for (const e of entries.sort((a, b) => score(b) - score(a) || a.sourceRank - b.sourceRank || b.item.publishedAt - a.item.publishedAt)) {
-    const n = used.get(e.item.source) ?? 0;
-    if (n >= perSource) continue;
-    used.set(e.item.source, n + 1);
-    picked.push(e);
+  const room = (e) => (used.get(e.item.source) ?? 0) < perSource;
+  const take = (e) => { used.set(e.item.source, (used.get(e.item.source) ?? 0) + 1); picked.push(e); };
+  for (const e of ordered) {
     if (picked.length >= perSection) break;
+    if (room(e)) take(e);
+  }
+  // Coverage guarantee (`classify.reserve`): at least `count` stories on the listed topics, when that many
+  // exist, by swapping them in for the lowest-ranked stories on other topics.
+  if (classify?.reserve) {
+    const wantedTopic = (e) => classify.reserve.topics.includes(e.item.topic);
+    for (const e of ordered) {
+      if (picked.filter(wantedTopic).length >= classify.reserve.count) break;
+      if (picked.includes(e) || !wantedTopic(e) || !room(e)) continue;
+      const victim = [...picked].reverse().find((p) => !wantedTopic(p));
+      if (!victim) break;
+      picked.splice(picked.indexOf(victim), 1);
+      used.set(victim.item.source, used.get(victim.item.source) - 1);
+      take(e);
+    }
+    picked.sort((a, b) => ordered.indexOf(a) - ordered.indexOf(b));
   }
   return picked.map(({ item, sources }) => {
     const { eventId, ...rest } = item; // internal grouping label, not part of the output

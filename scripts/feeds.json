@@ -282,18 +282,85 @@
           "url": "https://feeds.npr.org/1128/rss.xml"
         },
         {
-          "name": "STAT",
-          "url": "https://www.statnews.com/feed/"
-        },
-        {
           "name": "KFF Health News",
           "url": "https://kffhealthnews.org/feed/"
         },
         {
+          "name": "STAT",
+          "url": "https://www.statnews.com/feed/"
+        },
+        {
+          "name": "BioPharma Dive",
+          "url": "https://www.biopharmadive.com/feeds/news/"
+        },
+        {
+          "name": "GEN",
+          "url": "https://www.genengnews.com/feed/"
+        },
+        {
+          "name": "MedPage Today",
+          "url": "https://www.medpagetoday.com/rss/headlines.xml"
+        },
+        {
+          "name": "Medical Xpress",
+          "url": "https://medicalxpress.com/rss-feed/"
+        },
+        {
+          "name": "Medical Xpress",
+          "url": "https://medicalxpress.com/rss-feed/breaking/"
+        },
+        {
+          "name": "News-Medical",
+          "url": "https://www.news-medical.net/syndication.axd?format=rss"
+        },
+        {
           "name": "ScienceDaily",
           "url": "https://www.sciencedaily.com/rss/health_medicine.xml"
+        },
+        {
+          "name": "ScienceDaily",
+          "url": "https://www.sciencedaily.com/rss/health_medicine/pharmacology.xml"
+        },
+        {
+          "name": "Nature",
+          "url": "https://www.nature.com/nature.rss"
+        },
+        {
+          "name": "Nature Medicine",
+          "url": "https://www.nature.com/nm.rss"
+        },
+        {
+          "name": "The Lancet",
+          "url": "https://www.thelancet.com/rssfeed/lancet_current.xml"
+        },
+        {
+          "name": "NEJM",
+          "url": "https://www.nejm.org/action/showFeed?jc=nejm&type=etoc&feed=rss"
+        },
+        {
+          "name": "FDA",
+          "url": "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/press-releases/rss.xml"
         }
-      ]
+      ],
+      "classify": {
+        "minImportance": 3,
+        "dropScopes": [
+          "local"
+        ],
+        "priorityTopics": [
+          "research",
+          "pharma"
+        ],
+        "priorityBonus": 1,
+        "reserve": {
+          "topics": [
+            "research",
+            "pharma"
+          ],
+          "count": 5
+        },
+        "guidance": "These items were collected for the Health section of a news app for readers who want health and medical science: research breakthroughs and studies, clinical trials, drug and vaccine development and approvals, pharmaceutical and biotech industry news, outbreaks, and health policy. importance for such a reader: 5 = a major breakthrough, a landmark trial, a notable drug or vaccine approval, or a serious outbreak; 4 = a significant study, drug-development or health-policy story; 3 = notable; 2 = wellness, diet, fitness or lifestyle advice, product reviews and personal stories; 1 = promotional content."
+      }
     }
   ]
 }
