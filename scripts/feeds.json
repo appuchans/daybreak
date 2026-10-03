@@ -1,6 +1,7 @@
 {
   "perSource": 4,
   "perSection": 12,
+  "maxAgeHours": 72,
   "sections": [
     {
       "id": "world",

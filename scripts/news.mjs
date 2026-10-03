@@ -105,11 +105,16 @@ export function storyKeys(item) {
 // items: every item for one section (several feeds may share a source name).
 // exclude: Set of storyKeys already placed in a more specific section; those stories are skipped
 // before the per-source cap, so the section backfills with the next story instead of shrinking.
-// Ranking: stories carried by more than one source first, then newest first.
-export function buildSection(items, { perSource = 4, perSection = 12, exclude = new Set() } = {}) {
+// maxAgeHours (with now): items older than that are dropped, so a dead feed cannot fill a section.
+// Ranking: stories carried by more than one source first, then each source's newest story before
+// any source's second story and so on (so a fast feed cannot crowd the others out of the top
+// perSection), then newest first.
+export function buildSection(items, { perSource = 4, perSection = 12, exclude = new Set(), maxAgeHours, now = Date.now() } = {}) {
   const taken = new Map();
   const bySource = new Map();
-  const fresh = items.filter((it) => !storyKeys(it).some((k) => exclude.has(k)));
+  const fresh = items.filter(
+    (it) => !storyKeys(it).some((k) => exclude.has(k)) && (maxAgeHours === undefined || now - it.publishedAt <= maxAgeHours * 3_600_000),
+  );
   for (const it of fresh.sort((a, b) => b.publishedAt - a.publishedAt)) {
     const n = bySource.get(it.source) ?? 0;
     if (n >= perSource) continue;
@@ -124,12 +129,12 @@ export function buildSection(items, { perSource = 4, perSection = 12, exclude = 
       taken.set(urlKey, hit);
       continue;
     }
-    const entry = { item: it, sources: new Set([it.source]) };
+    const entry = { item: it, sources: new Set([it.source]), sourceRank: n };
     taken.set(key, entry);
     taken.set(urlKey, entry);
   }
   return [...new Set(taken.values())]
-    .sort((a, b) => b.sources.size - a.sources.size || b.item.publishedAt - a.item.publishedAt)
+    .sort((a, b) => b.sources.size - a.sources.size || a.sourceRank - b.sourceRank || b.item.publishedAt - a.item.publishedAt)
     .slice(0, perSection)
     .map(({ item, sources }) => ({ ...item, alsoReportedBy: [...sources].filter((s) => s !== item.source) }));
 }

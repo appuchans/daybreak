@@ -119,3 +119,20 @@ test("exclude skips stories placed elsewhere and backfills from the rest", () =>
   const byUrl = buildSection(items, { exclude: new Set([canonicalUrl("https://a.example/shared")]) });
   assert.equal(byUrl.length, 2);
 });
+
+test("each source's newest story outranks another source's second story", () => {
+  const items = [
+    it("A", "A one", "https://a.example/1", 50), it("A", "A two", "https://a.example/2", 49), it("A", "A three", "https://a.example/3", 48),
+    it("B", "B one", "https://b.example/1", 10),
+  ];
+  const titles = buildSection(items, { perSection: 2 }).map((i) => i.title);
+  assert.deepEqual(titles.sort(), ["A one", "B one"]);
+});
+
+test("maxAgeHours drops stale items", () => {
+  const now = Date.UTC(2026, 9, 3, 12, 0);
+  const old = { ...it("A", "Old", "https://a.example/old", 0), publishedAt: now - 100 * 3_600_000 };
+  const recent = { ...it("A", "Recent", "https://a.example/new", 0), publishedAt: now - 2 * 3_600_000 };
+  assert.deepEqual(buildSection([old, recent], { maxAgeHours: 72, now }).map((i) => i.title), ["Recent"]);
+  assert.equal(buildSection([old, recent], { now }).length, 2);
+});

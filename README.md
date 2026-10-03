@@ -6,6 +6,8 @@ A scheduled GitHub Action (`.github/workflows/news.yml`) fetches the RSS feeds i
 
 A story appears in one section only: when several sections carry it, the later tab wins (a Flydubai story in both World and India stays in India) and the earlier tab fills the gap with its next story.
 
+Within a section, stories carried by several sources rank first, then each source's newest story before any source's second one, so no single feed fills the list. Items older than `maxAgeHours` (72) are dropped.
+
 To vet new sources, list them in `scripts/candidates.json` and push: the "Check candidate feeds" workflow prints, per feed, whether it answers, its item count, freshness and image coverage.
 
 ## One-time setup
