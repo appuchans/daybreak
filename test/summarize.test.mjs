@@ -50,7 +50,7 @@ test("geminiCaller sends the documented request and keeps the key out of the URL
 });
 
 test("geminiCaller: 429 and key errors halt; server errors are ordinary failures", async () => {
-  for (const [status, halts] of [[429, true], [403, true], [400, true], [500, false]]) {
+  for (const [status, halts] of [[429, true], [403, true], [400, true], [404, true], [500, false]]) {
     await withGemini((req, res) => { res.statusCode = status; res.end("{}"); }, async (baseUrl) => {
       const p = geminiCaller({ apiKey: "k", baseUrl })(item(1));
       if (halts) await assert.rejects(p, HaltSummaries);
@@ -107,4 +107,21 @@ test("three failures in a row stop the run; a success resets the count", async (
   let k = 0;
   const ok = await summarizeSections(mk(), { call: async () => { k++; if (k % 3 === 0) return "S."; throw new Error("x"); }, delayMs: 0, sleep: noSleep, log: () => {} });
   assert.equal(ok.halted, null);
+});
+
+test("failures carry Google's status and message, with the key masked", async () => {
+  await withGemini((req, res) => { res.statusCode = 404; res.end(JSON.stringify({ error: { code: 404, status: "NOT_FOUND", message: "models/x is not found; key SECRET is not valid" } })); }, async (baseUrl) => {
+    await assert.rejects(geminiCaller({ apiKey: "SECRET", baseUrl })(item(1)), (e) => {
+      assert.ok(e instanceof HaltSummaries);
+      assert.ok(e.message.startsWith("HTTP 404 NOT_FOUND models/x is not found"));
+      assert.ok(!e.message.includes("SECRET"));
+      return true;
+    });
+  });
+});
+
+test("the first three ordinary failures are logged with their cause", async () => {
+  const logs = [];
+  await summarizeSections({ a: { items: [1, 2, 3, 4].map((n) => item(n)) } }, { call: async () => { throw new Error("HTTP 503 UNAVAILABLE overloaded"); }, delayMs: 0, sleep: noSleep, log: (m) => logs.push(m) });
+  assert.equal(logs.filter((m) => m.includes("HTTP 503 UNAVAILABLE overloaded")).length, 3);
 });
