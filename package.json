@@ -1,0 +1,13 @@
+{
+  "name": "daybreak",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node --test",
+    "build:news": "node scripts/build-news.mjs"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.2.0"
+  }
+}

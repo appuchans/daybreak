@@ -1,0 +1,4 @@
+node_modules/
+news.json
+previous-news.json
+_site/
