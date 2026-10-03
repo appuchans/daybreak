@@ -24,7 +24,11 @@ export function decodeEntities(s) {
 }
 
 export function cleanText(s) {
-  return decodeEntities(text(s).replace(/<[^>]*>/g, " "))
+  // Block-level tags separate words; inline tags (<b>, <a>, <em>) must not, or "<b>x</b>." becomes "x .".
+  const stripped = text(s)
+    .replace(/<\/?(?:p|br|div|li|ul|ol|h[1-6]|tr|td|th|table|blockquote|figure|figcaption)\b[^>]*>/gi, " ")
+    .replace(/<[^>]*>/g, "");
+  return decodeEntities(stripped)
     .replace(/\s+/g, " ")
     .trim();
 }

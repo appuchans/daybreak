@@ -160,3 +160,8 @@ test("parses RSS 1.0 / RDF feeds (Deutsche Welle)", () => {
   assert.equal(item.url, "https://dw.example/a");
   assert.equal(item.snippet, "Body text");
 });
+
+test("inline tags do not split words or detach punctuation; block tags separate words", () => {
+  assert.equal(cleanText("Kim <b>fired</b>. A<a href='x'>BC</a>D"), "Kim fired. ABCD");
+  assert.equal(cleanText("<p>One</p><p>Two</p>line<br>break"), "One Two line break");
+});

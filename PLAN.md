@@ -27,8 +27,11 @@ test/      node:test suites for scripts/ and site/lib.js
 ## Remaining (Phase 3, reading features; localStorage only)
 Bookmarks, read state, source filter, text size, and optionally a pull-to-refresh gesture.
 
+## Trial: AI summaries (Gemini free tier)
+Built 2026-10-03, off until a `GEMINI_API_KEY` secret exists. Keep if the summaries prove useful; otherwise remove the secret or revert the commit. Questions to answer from the trial: are one-sentence summaries of a feed snippet better than the snippet, does the free tier cover ~30 new stories per 30 minutes, and are summaries accurate.
+
 ## Dropped
-AI summaries (paid API, no free place to keep a key).
+Summaries from full article text (needs scraping publishers: paywalls, terms of service, copyright).
 
 ## Known risks
 - Scheduled runs can be delayed, and GitHub disables schedules on a public repo after 60 days without activity (any push resets it).
