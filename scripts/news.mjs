@@ -167,6 +167,7 @@ export function storyKeys(item) {
 // exclude: Set of storyKeys already placed in a more specific section; those stories are skipped
 // before the per-source cap, so the section backfills with the next story instead of shrinking.
 // maxAgeHours (with now): items older than that are dropped, so a dead feed cannot fill a section.
+// `eventId` (set by the AI grouping step) marks items that report the same event; they merge like exact duplicates.
 // Ranking: AI importance plus a bonus for stories several outlets carry, then each source's newest story before
 // any source's second story and so on (so a fast feed cannot crowd the others out of the top
 // perSection), then newest first.
@@ -191,7 +192,7 @@ export function buildSection(items, { perSource = 4, perSection = 12, exclude = 
     const key = normalizeTitle(it.title);
     const urlKey = canonicalUrl(it.url);
     const tokens = titleTokens(it.title);
-    const hit = taken.get(key) ?? taken.get(urlKey) ?? entries.find((e) => sameStory(e.tokens, tokens));
+    const hit = taken.get(key) ?? taken.get(urlKey) ?? entries.find((e) => sameStory(e.tokens, tokens) || (it.eventId && e.item.eventId === it.eventId));
     if (hit) {
       hit.sources.add(it.source);
       if (!hit.item.image && it.image) hit.item = { ...hit.item, image: it.image };
@@ -212,5 +213,8 @@ export function buildSection(items, { perSource = 4, perSection = 12, exclude = 
   return [...new Set(taken.values())]
     .sort((a, b) => score(b) - score(a) || a.sourceRank - b.sourceRank || b.item.publishedAt - a.item.publishedAt)
     .slice(0, perSection)
-    .map(({ item, sources }) => ({ ...item, alsoReportedBy: [...sources].filter((s) => s !== item.source) }));
+    .map(({ item, sources }) => {
+      const { eventId, ...rest } = item; // internal grouping label, not part of the output
+      return { ...rest, alsoReportedBy: [...sources].filter((s) => s !== item.source) };
+    });
 }

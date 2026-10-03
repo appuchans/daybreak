@@ -52,6 +52,13 @@ cp news.json site/ && cd site && python3 -m http.server 8000
 - Model replies are validated (known scope, integer importance 1 to 5, id in range); headlines are passed to the model as data inside a JSON array.
 - `scripts/gemini.mjs` holds the one REST call used by classification and summaries.
 
+## AI event grouping (Gemini)
+
+`scripts/group.mjs`. Word-overlap matching cannot tell that "Medical transport airplane missing off Massachusetts" and "Coast Guard searching off Nantucket for missing Boston-bound jet" are one event. After classification, each section's provisional top 2 x `perSection` stories go to Gemini in one request; it returns groups of ids that report the same specific event (not the same broad topic: two strikes in one war are two events). Grouped items get a shared `eventId`, which `buildSection` treats like an exact duplicate: one card, every outlet credited in `alsoReportedBy`, and the corroboration bonus applies.
+
+- One extra request per section per run, not cached (a group depends on what else is in the pool). Skipped if classification halted.
+- Fail-open: errors are a `::warning::`, nothing is grouped, and the deterministic matching still applies. `eventId` never reaches `news.json`.
+
 ## AI "what it's about" lines (Gemini)
 
 `scripts/summarize.mjs`, called from `build-news.mjs`. Off unless the `GEMINI_API_KEY` secret exists.

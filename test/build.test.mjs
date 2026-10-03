@@ -141,7 +141,7 @@ test("AI classification drops a local story from a classified section and caches
       const titles = r.news.sections.india.items.map((i) => i.title);
       assert.deepEqual(titles.sort(), ["Parliament passes the national budget", "Unclassified edge case story here"]);
       assert.ok(r.out.includes("AI classification india: cached=0 classified=2 unclassified=1"));
-      assert.deepEqual(seenPrompts, ["application/json"]);
+      assert.deepEqual(seenPrompts, ["application/json", "application/json"], "one classification request, then one grouping request");
       const cache = JSON.parse(await readFile(join(dir, "classify-cache.json"), "utf8"));
       assert.deepEqual(cache["x.example/6"], { scope: "local", importance: 2, topic: "other", focus: "world", clickbait: false, v: 5 });
       assert.ok(!JSON.stringify(r.news).includes("TOPSECRET") && !JSON.stringify(cache).includes("TOPSECRET"));
@@ -165,4 +165,36 @@ test("an item with no description gets the article page's description, without a
       assert.ok(r.out.includes("Descriptions: reused=0 fetched=1"));
     });
   } finally { pages.close(); }
+});
+
+test("AI grouping: differently worded reports of one event become one card with both outlets credited", async () => {
+  const mk = (title, n) => `<rss version="2.0"><channel><item><title>${title}</title><link>https://x.example/${n}</link><pubDate>Sat, 03 Oct 2026 0${n}:00:00 GMT</pubDate></item></channel></rss>`;
+  const dir = await mkdtemp(join(tmpdir(), "daybreak-"));
+  const gemini = createServer((req, res) => {
+    let body = "";
+    req.on("data", (c) => (body += c));
+    req.on("end", () => {
+      const parsed = JSON.parse(body);
+      const system = parsed.system_instruction.parts[0].text;
+      const items = JSON.parse(parsed.contents[0].parts[0].text.split("Items:\n")[1]);
+      const text = system.includes("same specific event")
+        ? JSON.stringify([items.filter((i) => /plane|jet/.test(i.headline)).map((i) => i.id)])
+        : JSON.stringify(items.map((i) => ({ id: i.id, scope: "national", importance: 4, topic: "incident", focus: "us", clickbait: false })));
+      res.setHeader("content-type", "application/json");
+      res.end(JSON.stringify({ candidates: [{ content: { parts: [{ text }] } }] }));
+    });
+  });
+  await new Promise((r) => gemini.listen(0, "127.0.0.1", r));
+  try {
+    await withServer({ "/a": mk("Medical plane missing near Nantucket with six aboard", 8), "/b": mk("Coast Guard searching for missing Boston-bound jet", 7), "/c": mk("Senate votes on the budget", 6) }, async (base) => {
+      const config = { perSource: 4, perSection: 12, sections: [{ id: "us", label: "US", feeds: [{ name: "A", url: `${base}/a` }, { name: "B", url: `${base}/b` }, { name: "C", url: `${base}/c` }] }] };
+      const r = await build(dir, config, null, { GEMINI_API_KEY: "TOPSECRET", GEMINI_BASE_URL: `http://127.0.0.1:${gemini.address().port}`, SUMMARY_DELAY_MS: "0" });
+      assert.equal(r.code, 0);
+      const items = r.news.sections.us.items;
+      assert.equal(items.length, 2);
+      assert.deepEqual(items[0].alsoReportedBy, ["B"]);
+      assert.equal(items[0].eventId, undefined);
+      assert.ok(r.out.includes("AI grouping us: groups=1 grouped=2"));
+    });
+  } finally { gemini.close(); }
 });

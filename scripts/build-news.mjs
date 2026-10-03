@@ -5,6 +5,7 @@ import { parseFeed, buildSection, storyKeys, urlAllowed, canonicalUrl } from "./
 import { geminiCaller, summarizeSections } from "./summarize.mjs";
 import { classifyItems, geminiClassifier } from "./classify.mjs";
 import { enrichSnippets } from "./describe.mjs";
+import { groupEvents, geminiGrouper } from "./group.mjs";
 
 const config = JSON.parse(await readFile(process.env.FEEDS_CONFIG ?? new URL("./feeds.json", import.meta.url), "utf8"));
 const previous = await readFile(process.env.PREVIOUS_NEWS ?? "previous-news.json", "utf8")
@@ -72,6 +73,14 @@ for (const section of [...config.sections].reverse()) {
       });
     const stats = await classifyItems(items, { guidance: section.classify?.guidance ?? `These items were collected for the ${section.label} section of a news app. Rate scope and importance for a general reader of that section.`, call: geminiClassifier(geminiOptions), cache: classifyCache, delayMs: aiDelayMs });
     for (const i of items) usedInRun.add(canonicalUrl(i.url));
+    // Group headlines that report the same event, among the stories likely to be shown (the provisional top
+    // 2 x perSection), so one event takes one card. Not cached: the groups depend on what else is in the pool.
+    if (!stats.halted) {
+      const provisional = new Set(buildSection(items, { ...config, perSection: config.perSection * 2, exclude: placed, classify: section.classify ?? { minImportance: 2 } }).map((i) => i.url));
+      if (aiDelayMs > 0) await new Promise((r) => setTimeout(r, aiDelayMs));
+      const g = await groupEvents(items.filter((i) => provisional.has(i.url)), { call: geminiGrouper(geminiOptions) });
+      console.log(`AI grouping ${section.id}: groups=${g.groups} grouped=${g.grouped}${g.halted ? ` halted="${g.halted}"` : ""}`);
+    }
     console.log(`AI classification ${section.id}: cached=${stats.cached} classified=${stats.classified} unclassified=${stats.unclassified}${stats.halted ? ` halted="${stats.halted}"` : ""}`);
   }
   const built = buildSection(items, { ...config, exclude: placed, classify: section.classify ?? { minImportance: 2 } });

@@ -34,7 +34,7 @@ export function buildUser(guidance, batch) {
 // is ignored. A missing or unknown topic counts as "other", a missing or unknown focus as "world", and a
 // missing or non-boolean clickbait as false.
 export function parseClassification(text, count) {
-  const body = text.replace(/^[\s\S]*?(?=\[)/, "").replace(/\][\s\S]*$/, "]");
+  const body = text.slice(Math.max(text.indexOf("["), 0), text.lastIndexOf("]") + 1);
   let rows;
   try { rows = JSON.parse(body); } catch { return new Map(); }
   const out = new Map();
