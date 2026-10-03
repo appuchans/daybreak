@@ -53,3 +53,10 @@ test("World drops stories that are mainly US or India domestic news", () => {
   assert.deepEqual(world.classify.dropFocus, ["us", "india"]);
   assert.deepEqual(world.classify.dropScopes, ["state", "local"], "a story about one state or city is domestic news");
 });
+
+test("Business keeps only economy-topic stories and drops minor, personal-finance level ones", () => {
+  const { classify } = config.sections.find((s) => s.id === "business");
+  assert.deepEqual(classify.keepTopics, ["economy"]);
+  assert.ok(classify.minImportance >= 3);
+  assert.ok(classify.guidance.includes("personal-finance"));
+});

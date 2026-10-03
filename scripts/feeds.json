@@ -218,14 +218,56 @@
           "url": "https://feeds.npr.org/1006/rss.xml"
         },
         {
+          "name": "MarketWatch",
+          "url": "https://feeds.content.dowjones.io/public/rss/mw_topstories"
+        },
+        {
+          "name": "The New York Times",
+          "url": "https://rss.nytimes.com/services/xml/rss/nyt/Business.xml"
+        },
+        {
+          "name": "The New York Times",
+          "url": "https://rss.nytimes.com/services/xml/rss/nyt/Economy.xml"
+        },
+        {
           "name": "CNBC",
           "url": "https://www.cnbc.com/id/100003114/device/rss/rss.html"
         },
         {
-          "name": "MarketWatch",
-          "url": "https://feeds.content.dowjones.io/public/rss/mw_topstories"
+          "name": "CNBC",
+          "url": "https://www.cnbc.com/id/10001147/device/rss/rss.html"
+        },
+        {
+          "name": "CNBC",
+          "url": "https://www.cnbc.com/id/10000664/device/rss/rss.html"
+        },
+        {
+          "name": "CNBC",
+          "url": "https://www.cnbc.com/id/15839135/device/rss/rss.html"
+        },
+        {
+          "name": "CNBC",
+          "url": "https://www.cnbc.com/id/19836768/device/rss/rss.html"
+        },
+        {
+          "name": "CNBC",
+          "url": "https://www.cnbc.com/id/15839069/device/rss/rss.html"
+        },
+        {
+          "name": "CNBC",
+          "url": "https://www.cnbc.com/id/100727362/device/rss/rss.html"
         }
-      ]
+      ],
+      "classify": {
+        "minImportance": 3,
+        "dropScopes": [
+          "local"
+        ],
+        "keepTopics": [
+          "economy"
+        ],
+        "guidance": "These items were collected for the Business section of a news app whose readers want business and market news. For this section use topic 'economy' for any story mainly about companies, earnings, mergers, markets and stocks, central banks and interest rates, trade and tariffs, oil and energy markets and prices, jobs data, inflation, or economic policy; use another topic only for stories that are not about business at all (for example politics, crime, lifestyle or science). importance for a business reader: 5 = market-moving or major company news (big earnings or deals, central bank decisions, oil or trade shocks, large layoffs or bankruptcies); 4 = significant company, market or economic-data news; 3 = notable; 2 = personal-finance tips, retirement or tax questions, consumer how-tos, and small local or lifestyle-business stories; 1 = trivial or promotional."
+      }
     },
     {
       "id": "health",

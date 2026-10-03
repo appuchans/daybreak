@@ -180,6 +180,7 @@ export function buildSection(items, { perSource = 4, perSection = 12, exclude = 
     !classify ||
     ((!it.scope || !classify.dropScopes?.includes(it.scope)) &&
       (!it.focus || !classify.dropFocus?.includes(it.focus)) &&
+      (!it.topic || !classify.keepTopics || classify.keepTopics.includes(it.topic)) &&
       (it.importance === undefined || it.importance >= (classify.minImportance ?? 1)));
   const fresh = items.filter(
     (it) => !isRoundup(it.title) && !storyKeys(it).some((k) => exclude.has(k)) && (maxAgeHours === undefined || now - it.publishedAt <= maxAgeHours * 3_600_000) && wanted(it),

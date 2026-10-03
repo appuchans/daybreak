@@ -224,3 +224,9 @@ test("buildSection skips roundups, including carried-over ones", () => {
   ];
   assert.deepEqual(buildSection(items).map((i) => i.title), ["Parliament passes landmark data protection bill"]);
 });
+
+test("keepTopics drops stories whose topic is not wanted, and keeps unrated ones", () => {
+  const mk = (n, topic) => ({ title: `Distinct headline number ${n} about something`, snippet: "", url: `https://a.example/${n}`, source: `S${n}`, publishedAt: n, topic });
+  const out = buildSection([mk(1, "economy"), mk(2, "politics"), mk(3, undefined), mk(4, "other")], { classify: { keepTopics: ["economy"] } });
+  assert.deepEqual(out.map((i) => i.topic).sort(), ["economy", undefined]);
+});
