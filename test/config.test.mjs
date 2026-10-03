@@ -47,3 +47,8 @@ test("US and India put government, politics, defense and incident stories first"
     assert.ok(classify.priorityBonus >= 2, id);
   }
 });
+
+test("World drops stories that are mainly US or India domestic news", () => {
+  const world = config.sections.find((s) => s.id === "world");
+  assert.deepEqual(world.classify.dropFocus, ["us", "india"]);
+});

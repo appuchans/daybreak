@@ -9,11 +9,11 @@ const noSleep = () => Promise.resolve();
 const reply = (rows) => async () => JSON.stringify(rows);
 
 test("parseClassification accepts valid rows, tolerates code fences, and ignores invalid ones", () => {
-  const text = '```json\n[{"id":0,"scope":"local","importance":2,"topic":"incident","clickbait":true},{"id":1,"scope":"national","importance":5,"topic":"astrology"},{"id":2,"scope":"galaxy","importance":3},{"id":3,"scope":"state","importance":9},{"id":7,"scope":"state","importance":3},{"id":"x","scope":"state","importance":3}]\n```';
+  const text = '```json\n[{"id":0,"scope":"local","importance":2,"topic":"incident","focus":"us","clickbait":true},{"id":1,"scope":"national","importance":5,"topic":"astrology","focus":"mars"},{"id":2,"scope":"galaxy","importance":3},{"id":3,"scope":"state","importance":9},{"id":7,"scope":"state","importance":3},{"id":"x","scope":"state","importance":3}]\n```';
   const out = parseClassification(text, 4);
   assert.deepEqual([...out.keys()], [0, 1]);
-  assert.deepEqual(out.get(0), { scope: "local", importance: 2, topic: "incident", clickbait: true });
-  assert.deepEqual(out.get(1), { scope: "national", importance: 5, topic: "other", clickbait: false });
+  assert.deepEqual(out.get(0), { scope: "local", importance: 2, topic: "incident", focus: "us", clickbait: true });
+  assert.deepEqual(out.get(1), { scope: "national", importance: 5, topic: "other", focus: "world", clickbait: false });
   assert.equal(parseClassification("not json at all", 3).size, 0);
   assert.equal(parseClassification('{"id":0}', 3).size, 0);
 });
@@ -28,15 +28,15 @@ test("buildUser puts headlines in a JSON array and trims the note", () => {
 
 test("classifyItems reuses cached answers and only asks about new stories", async () => {
   const items = [item(1), item(2)];
-  const cache = new Map([["a.example/1", { scope: "national", importance: 4, topic: "policy", clickbait: false, v: CACHE_VERSION }]]);
+  const cache = new Map([["a.example/1", { scope: "national", importance: 4, topic: "policy", focus: "us", clickbait: false, v: CACHE_VERSION }]]);
   const seen = [];
-  const stats = await classifyItems(items, { guidance: "G", cache, delayMs: 0, sleep: noSleep, call: async (sys, user) => { seen.push(user); return JSON.stringify([{ id: 0, scope: "local", importance: 2, topic: "incident", clickbait: true }]); } });
+  const stats = await classifyItems(items, { guidance: "G", cache, delayMs: 0, sleep: noSleep, call: async (sys, user) => { seen.push(user); return JSON.stringify([{ id: 0, scope: "local", importance: 2, topic: "incident", focus: "india", clickbait: true }]); } });
   assert.deepEqual([stats.cached, stats.classified], [1, 1]);
   assert.equal(items[0].scope, "national");
   assert.equal(items[1].scope, "local");
   assert.equal(seen.length, 1);
   assert.ok(seen[0].includes("Headline number 2") && !seen[0].includes("Headline number 1"));
-  assert.deepEqual(cache.get("a.example/2"), { scope: "local", importance: 2, topic: "incident", clickbait: true, v: CACHE_VERSION });
+  assert.deepEqual(cache.get("a.example/2"), { scope: "local", importance: 2, topic: "incident", focus: "india", clickbait: true, v: CACHE_VERSION });
   assert.equal(items[1].clickbait, true);
 });
 
@@ -125,4 +125,15 @@ test("priority topics lift government, defense and incident stories above higher
   const lifted = buildSection(items, { classify: { minImportance: 2, priorityTopics: ["policy", "defense"], priorityBonus: 2 } }).map((i) => i.title);
   assert.deepEqual(lifted.slice(0, 2), ["Military strikes escalate the regional war", "Senate passes the defense budget"]);
   assert.ok(["Clinical trial offers hope for a rare condition", "Tech giant unveils a new phone"].includes(lifted.at(-1)));
+});
+
+test("a section can drop stories whose subject is another country's domestic news", () => {
+  const items = [
+    item(1, { title: "Senate stalls the budget as shutdown nears", importance: 5, focus: "us", source: "A" }),
+    item(2, { title: "Parliament in Delhi debates a new bill", importance: 4, focus: "india", source: "B" }),
+    item(3, { title: "Talks on the regional war resume in Geneva", importance: 4, focus: "world", source: "C" }),
+    item(4, { title: "Unrated story from the feed", source: "D" }),
+  ];
+  const titles = buildSection(items, { classify: { dropFocus: ["us", "india"] } }).map((i) => i.title);
+  assert.deepEqual(titles.sort(), ["Talks on the regional war resume in Geneva", "Unrated story from the feed"]);
 });

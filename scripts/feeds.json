@@ -39,7 +39,15 @@
           "name": "DW",
           "url": "https://rss.dw.com/rdf/rss-en-world"
         }
-      ]
+      ],
+      "classify": {
+        "minImportance": 2,
+        "dropFocus": [
+          "us",
+          "india"
+        ],
+        "guidance": "These items were collected for the World section of a news app: international news. Stories that are mainly about the United States' or India's own domestic affairs belong to those countries' sections, even when a foreign outlet reported them."
+      }
     },
     {
       "id": "us",
