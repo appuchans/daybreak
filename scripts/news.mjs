@@ -167,7 +167,7 @@ export function storyKeys(item) {
 // exclude: Set of storyKeys already placed in a more specific section; those stories are skipped
 // before the per-source cap, so the section backfills with the next story instead of shrinking.
 // maxAgeHours (with now): items older than that are dropped, so a dead feed cannot fill a section.
-// Ranking: stories carried by more than one source first, then by AI importance when present, then each source's newest story before
+// Ranking: AI importance plus a bonus for stories several outlets carry, then each source's newest story before
 // any source's second story and so on (so a fast feed cannot crowd the others out of the top
 // perSection), then newest first.
 export function buildSection(items, { perSource = 4, perSection = 12, exclude = new Set(), maxAgeHours, now = Date.now(), classify } = {}) {
@@ -203,8 +203,11 @@ export function buildSection(items, { perSource = 4, perSection = 12, exclude = 
     taken.set(key, entry);
     taken.set(urlKey, entry);
   }
+  // Score = AI importance (3 when unrated) plus up to 2 for other outlets carrying the story. Ties go to the
+  // source whose turn it is (each source's newest first), then to the newest story.
+  const score = (e) => (e.item.importance ?? 3) + Math.min(2, e.sources.size - 1);
   return [...new Set(taken.values())]
-    .sort((a, b) => b.sources.size - a.sources.size || (classify ? (b.item.importance ?? 0) - (a.item.importance ?? 0) : 0) || a.sourceRank - b.sourceRank || b.item.publishedAt - a.item.publishedAt)
+    .sort((a, b) => score(b) - score(a) || a.sourceRank - b.sourceRank || b.item.publishedAt - a.item.publishedAt)
     .slice(0, perSection)
     .map(({ item, sources }) => ({ ...item, alsoReportedBy: [...sources].filter((s) => s !== item.source) }));
 }

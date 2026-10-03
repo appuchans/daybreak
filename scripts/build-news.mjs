@@ -74,7 +74,7 @@ for (const section of [...config.sections].reverse()) {
     for (const i of items) usedInRun.add(canonicalUrl(i.url));
     console.log(`AI classification ${section.id}: cached=${stats.cached} classified=${stats.classified} unclassified=${stats.unclassified}${stats.halted ? ` halted="${stats.halted}"` : ""}`);
   }
-  const built = buildSection(items, { ...config, exclude: placed, classify: section.classify });
+  const built = buildSection(items, { ...config, exclude: placed, classify: section.classify ?? { minImportance: 2 } });
   for (const item of built) storyKeys(item).forEach((k) => placed.add(k));
   if (built.length === 0) {
     console.log(`::error::${section.id} has no items; refusing to publish an empty section`);

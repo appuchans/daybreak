@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseClassification, classifyItems, buildUser } from "../scripts/classify.mjs";
+import { parseClassification, classifyItems, buildUser, CACHE_VERSION } from "../scripts/classify.mjs";
 import { HaltGemini } from "../scripts/gemini.mjs";
 import { buildSection } from "../scripts/news.mjs";
 
@@ -28,7 +28,7 @@ test("buildUser puts headlines in a JSON array and trims the note", () => {
 
 test("classifyItems reuses cached answers and only asks about new stories", async () => {
   const items = [item(1), item(2)];
-  const cache = new Map([["a.example/1", { scope: "national", importance: 4, clickbait: false }]]);
+  const cache = new Map([["a.example/1", { scope: "national", importance: 4, clickbait: false, v: CACHE_VERSION }]]);
   const seen = [];
   const stats = await classifyItems(items, { guidance: "G", cache, delayMs: 0, sleep: noSleep, call: async (sys, user) => { seen.push(user); return JSON.stringify([{ id: 0, scope: "local", importance: 2, clickbait: true }]); } });
   assert.deepEqual([stats.cached, stats.classified], [1, 1]);
@@ -36,7 +36,7 @@ test("classifyItems reuses cached answers and only asks about new stories", asyn
   assert.equal(items[1].scope, "local");
   assert.equal(seen.length, 1);
   assert.ok(seen[0].includes("Headline number 2") && !seen[0].includes("Headline number 1"));
-  assert.deepEqual(cache.get("a.example/2"), { scope: "local", importance: 2, clickbait: true });
+  assert.deepEqual(cache.get("a.example/2"), { scope: "local", importance: 2, clickbait: true, v: CACHE_VERSION });
   assert.equal(items[1].clickbait, true);
 });
 
@@ -83,11 +83,31 @@ test("a section without classify settings ignores scope fields", () => {
   assert.equal(out.length, 1);
 });
 
-test("a cached answer from before the clickbait question is asked again", async () => {
+test("a cached answer from an older rubric version is asked again", async () => {
   const items = [item(1)];
-  const cache = new Map([["a.example/1", { scope: "national", importance: 4 }]]);
+  const cache = new Map([["a.example/1", { scope: "national", importance: 4, clickbait: false, v: CACHE_VERSION - 1 }]]);
   let calls = 0;
   await classifyItems(items, { guidance: "G", cache, delayMs: 0, sleep: noSleep, call: async () => { calls++; return JSON.stringify([{ id: 0, scope: "national", importance: 4, clickbait: true }]); } });
   assert.equal(calls, 1);
   assert.equal(items[0].clickbait, true);
+});
+
+test("ranking: importance leads in any section, other outlets add up to 2, unrated counts as 3", () => {
+  const at = (n, over) => item(n, { ...over });
+  const items = [
+    at(1, { title: "Celebrity gelato feature", importance: 2, source: "A" }),
+    at(2, { title: "Unrated story from the feed", source: "B" }),
+    at(3, { title: "Major ruling by the supreme court on elections", importance: 5, source: "C" }),
+    at(4, { title: "Notable policy change on fuel taxes this week", importance: 3, source: "D" }),
+    at(5, { title: "Notable policy change on fuel taxes announced this week", importance: 3, source: "E" }),
+  ];
+  const titles = buildSection(items).map((i) => i.title);
+  assert.equal(titles[0], "Major ruling by the supreme court on elections");
+  assert.equal(titles.at(-1), "Celebrity gelato feature");
+  assert.ok(titles.indexOf("Notable policy change on fuel taxes this week") < titles.indexOf("Unrated story from the feed"));
+});
+
+test("a section with only a minimum importance drops trivial stories and keeps the rest", () => {
+  const out = buildSection([item(1, { importance: 1, scope: "national" }), item(2, { importance: 2, scope: "local" })], { classify: { minImportance: 2 } });
+  assert.deepEqual(out.map((i) => i.importance), [2]);
 });
