@@ -1,72 +1,102 @@
 [
  {
-  "section": "india",
-  "name": "The Hindu national",
-  "url": "https://www.thehindu.com/news/national/feeder/default.rss"
+  "section": "business",
+  "name": "NYT Business",
+  "url": "https://rss.nytimes.com/services/xml/rss/nyt/Business.xml"
  },
  {
-  "section": "india",
-  "name": "The Hindu all",
-  "url": "https://www.thehindu.com/feeder/default.rss"
+  "section": "business",
+  "name": "NYT Economy",
+  "url": "https://rss.nytimes.com/services/xml/rss/nyt/Economy.xml"
  },
  {
-  "section": "india",
-  "name": "TOI top stories",
-  "url": "https://timesofindia.indiatimes.com/rssfeedstopstories.cms"
+  "section": "business",
+  "name": "WSJ Markets",
+  "url": "https://feeds.a.dj.com/rss/RSSMarketsMain.xml"
  },
  {
-  "section": "india",
-  "name": "TOI India",
-  "url": "https://timesofindia.indiatimes.com/rssfeeds/-2128936835.cms"
+  "section": "business",
+  "name": "WSJ US Business",
+  "url": "https://feeds.a.dj.com/rss/WSJcomUSBusiness.xml"
  },
  {
-  "section": "india",
-  "name": "NDTV top stories",
-  "url": "https://feeds.feedburner.com/ndtvnews-top-stories"
+  "section": "business",
+  "name": "MarketWatch realtime",
+  "url": "https://feeds.content.dowjones.io/public/rss/mw_realtimeheadlines"
  },
  {
-  "section": "india",
-  "name": "NDTV India",
-  "url": "https://feeds.feedburner.com/ndtvnews-india-news"
+  "section": "business",
+  "name": "MarketWatch marketpulse",
+  "url": "https://feeds.content.dowjones.io/public/rss/mw_marketpulse"
  },
  {
-  "section": "india",
-  "name": "HT top news",
-  "url": "https://www.hindustantimes.com/feeds/rss/topnews/rssfeed.xml"
+  "section": "business",
+  "name": "CNBC Business",
+  "url": "https://www.cnbc.com/id/10001147/device/rss/rss.html"
  },
  {
-  "section": "india",
-  "name": "HT india-news",
-  "url": "https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml"
+  "section": "business",
+  "name": "CNBC Finance",
+  "url": "https://www.cnbc.com/id/10000664/device/rss/rss.html"
  },
  {
-  "section": "india",
-  "name": "HT business",
-  "url": "https://www.hindustantimes.com/feeds/rss/business/rssfeed.xml"
+  "section": "business",
+  "name": "CNBC Earnings",
+  "url": "https://www.cnbc.com/id/15839135/device/rss/rss.html"
  },
  {
-  "section": "india",
-  "name": "Mint companies",
-  "url": "https://www.livemint.com/rss/companies"
+  "section": "business",
+  "name": "CNBC Energy",
+  "url": "https://www.cnbc.com/id/19836768/device/rss/rss.html"
  },
  {
-  "section": "india",
-  "name": "Mint economy",
-  "url": "https://www.livemint.com/rss/economy"
+  "section": "business",
+  "name": "CNBC Investing",
+  "url": "https://www.cnbc.com/id/15839069/device/rss/rss.html"
  },
  {
-  "section": "india",
-  "name": "ET industry",
-  "url": "https://economictimes.indiatimes.com/industry/rssfeeds/13352306.cms"
+  "section": "business",
+  "name": "CNBC World Business",
+  "url": "https://www.cnbc.com/id/100727362/device/rss/rss.html"
  },
  {
-  "section": "india",
-  "name": "ET economy",
-  "url": "https://economictimes.indiatimes.com/news/economy/rssfeeds/1373380680.cms"
+  "section": "business",
+  "name": "Fortune",
+  "url": "https://fortune.com/feed/"
  },
  {
-  "section": "india",
-  "name": "BusinessLine",
-  "url": "https://www.thehindubusinessline.com/feeder/default.rss"
+  "section": "business",
+  "name": "Business Insider",
+  "url": "https://feeds.businessinsider.com/custom/all"
+ },
+ {
+  "section": "business",
+  "name": "Forbes Business",
+  "url": "https://www.forbes.com/business/feed/"
+ },
+ {
+  "section": "business",
+  "name": "Economist Finance",
+  "url": "https://www.economist.com/finance-and-economics/rss.xml"
+ },
+ {
+  "section": "business",
+  "name": "Guardian Business",
+  "url": "https://www.theguardian.com/business/rss"
+ },
+ {
+  "section": "business",
+  "name": "Al Jazeera Economy",
+  "url": "https://www.aljazeera.com/xml/rss/all.xml"
+ },
+ {
+  "section": "business",
+  "name": "Axios",
+  "url": "https://api.axios.com/feed/"
+ },
+ {
+  "section": "business",
+  "name": "Yahoo Finance",
+  "url": "https://finance.yahoo.com/news/rssindex"
  }
 ]
