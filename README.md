@@ -24,7 +24,7 @@ When a Gemini API key is set up, new stories get a one-sentence summary written 
 
 ## How stories are chosen
 
-Each section combines feeds from five to nine news outlets. Stories reported by several outlets come first, then each outlet's newest story, so no single outlet fills a section. Anything older than three days is dropped, and a story shows up in one section only. Indian outlets appear in the India section only.
+Each section combines feeds from five to nine news outlets. Stories reported by several outlets come first (the more outlets cover something, the more important it is treated), then each outlet's newest story, so no single outlet fills a section. Anything older than three days is dropped, and a story shows up in one section only. Indian outlets appear in the India section only.
 
 Daybreak keeps just the headline, a one-line summary, the link, the outlet's name and a picture link. The stories belong to their publishers.
 

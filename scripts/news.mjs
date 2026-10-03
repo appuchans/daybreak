@@ -118,6 +118,31 @@ export function parseFeed(xml, source) {
   return items;
 }
 
+const STOPWORDS = new Set("the and for with that this from after over into says said will are was were has have its new not but you your why how what who may can than then out off about amid via per his her their them they been being also more most just one two".split(" "));
+
+// Significant words of a headline, lightly stemmed, for recognising the same event worded differently.
+export function titleTokens(title) {
+  const words = normalizeTitle(title).split(" ").filter((w) => w.length >= 3 && !STOPWORDS.has(w));
+  return new Set(words.map((w) => (w.length > 3 && w.endsWith("s") ? w.slice(0, -1) : w)));
+}
+
+// Strict on purpose: wrongly merging two different stories hides one of them, while a missed match
+// only loses a corroboration signal. With at least 5 shared words and 0.6 overlap, "India beat Pakistan in the cricket final" and
+// "India beat Malaysia to retain Asian Games gold" stay apart.
+export function sameStory(a, b) {
+  let shared = 0;
+  for (const t of a) if (b.has(t)) shared++;
+  return shared >= 5 && shared / (a.size + b.size - shared) >= 0.6;
+}
+
+// A feed may keep only some parts of the publisher's site: `only` (the path must match one of
+// these patterns) and `exclude` (it must match none). Patterns are regular expressions on the URL path.
+export function urlAllowed(url, { only, exclude } = {}) {
+  const path = new URL(url).pathname;
+  if (only?.length && !only.some((p) => new RegExp(p).test(path))) return false;
+  return !exclude?.some((p) => new RegExp(p).test(path));
+}
+
 // The keys a story is recognised by across sources and sections: normalized title and canonical URL.
 export function storyKeys(item) {
   return [normalizeTitle(item.title), canonicalUrl(item.url)];
@@ -136,13 +161,15 @@ export function buildSection(items, { perSource = 4, perSection = 12, exclude = 
   const fresh = items.filter(
     (it) => !storyKeys(it).some((k) => exclude.has(k)) && (maxAgeHours === undefined || now - it.publishedAt <= maxAgeHours * 3_600_000),
   );
+  const entries = [];
   for (const it of fresh.sort((a, b) => b.publishedAt - a.publishedAt)) {
     const n = bySource.get(it.source) ?? 0;
     if (n >= perSource) continue;
     bySource.set(it.source, n + 1);
     const key = normalizeTitle(it.title);
     const urlKey = canonicalUrl(it.url);
-    const hit = taken.get(key) ?? taken.get(urlKey);
+    const tokens = titleTokens(it.title);
+    const hit = taken.get(key) ?? taken.get(urlKey) ?? entries.find((e) => sameStory(e.tokens, tokens));
     if (hit) {
       hit.sources.add(it.source);
       if (!hit.item.image && it.image) hit.item = { ...hit.item, image: it.image };
@@ -150,7 +177,8 @@ export function buildSection(items, { perSource = 4, perSection = 12, exclude = 
       taken.set(urlKey, hit);
       continue;
     }
-    const entry = { item: it, sources: new Set([it.source]), sourceRank: n };
+    const entry = { item: it, sources: new Set([it.source]), sourceRank: n, tokens };
+    entries.push(entry);
     taken.set(key, entry);
     taken.set(urlKey, entry);
   }

@@ -111,11 +111,18 @@
       "feeds": [
         {
           "name": "The Hindu",
-          "url": "https://www.thehindu.com/news/national/feeder/default.rss"
+          "url": "https://www.thehindu.com/news/national/feeder/default.rss",
+          "exclude": [
+            "^/news/cities/",
+            "^/news/national/(andhra-pradesh|arunachal-pradesh|assam|bihar|chhattisgarh|goa|gujarat|haryana|himachal-pradesh|jharkhand|karnataka|kerala|madhya-pradesh|maharashtra|manipur|meghalaya|mizoram|nagaland|odisha|punjab|rajasthan|sikkim|tamil-nadu|telangana|tripura|uttar-pradesh|uttarakhand|west-bengal|puducherry|jammu-and-kashmir|ladakh|chandigarh|other-states)/"
+          ]
         },
         {
           "name": "Times of India",
-          "url": "https://timesofindia.indiatimes.com/rssfeeds/-2128936835.cms"
+          "url": "https://timesofindia.indiatimes.com/rssfeeds/-2128936835.cms",
+          "only": [
+            "^/india/"
+          ]
         },
         {
           "name": "BBC News",
@@ -123,23 +130,21 @@
         },
         {
           "name": "NDTV",
-          "url": "https://feeds.feedburner.com/ndtvnews-india-news"
+          "url": "https://feeds.feedburner.com/ndtvnews-india-news",
+          "only": [
+            "^/india-news/"
+          ]
         },
         {
           "name": "Hindustan Times",
-          "url": "https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml"
+          "url": "https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml",
+          "only": [
+            "^/india-news/"
+          ]
         },
         {
           "name": "Hindustan Times",
           "url": "https://www.hindustantimes.com/feeds/rss/business/rssfeed.xml"
-        },
-        {
-          "name": "Mint",
-          "url": "https://www.livemint.com/rss/companies"
-        },
-        {
-          "name": "Mint",
-          "url": "https://www.livemint.com/rss/economy"
         },
         {
           "name": "Economic Times",
@@ -151,7 +156,10 @@
         },
         {
           "name": "BusinessLine",
-          "url": "https://www.thehindubusinessline.com/feeder/default.rss"
+          "url": "https://www.thehindubusinessline.com/feeder/default.rss",
+          "exclude": [
+            "^/news/world/"
+          ]
         }
       ]
     },

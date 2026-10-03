@@ -24,3 +24,12 @@ test("India-based outlets feed the India section only", () => {
     for (const f of s.feeds) assert.ok(!indian.test(f.url), `${s.id}/${f.name} is an India-based feed`);
   }
 });
+
+test("Indian general-news feeds only take articles filed under India or national news", () => {
+  const india = config.sections.find((s) => s.id === "india");
+  const byUrl = (part) => india.feeds.find((f) => f.url.includes(part));
+  assert.deepEqual(byUrl("ndtvnews-india-news").only, ["^/india-news/"]);
+  assert.deepEqual(byUrl("-2128936835").only, ["^/india/"]);
+  assert.ok(byUrl("thehindu.com/news/national").exclude.some((p) => p.includes("cities")));
+  for (const f of india.feeds) for (const p of [...(f.only ?? []), ...(f.exclude ?? [])]) assert.doesNotThrow(() => new RegExp(p), `${f.name}: ${p}`);
+});

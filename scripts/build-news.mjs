@@ -1,7 +1,7 @@
 // Fetches every configured feed and writes news.json. A feed that fails keeps its
 // items from the previous published news.json, so one dead source never empties a section.
 import { readFile, writeFile } from "node:fs/promises";
-import { parseFeed, buildSection, storyKeys } from "./news.mjs";
+import { parseFeed, buildSection, storyKeys, urlAllowed } from "./news.mjs";
 import { geminiCaller, summarizeSections } from "./summarize.mjs";
 
 const config = JSON.parse(await readFile(process.env.FEEDS_CONFIG ?? new URL("./feeds.json", import.meta.url), "utf8"));
@@ -15,7 +15,7 @@ async function fetchFeed(feed) {
     headers: { "User-Agent": "DaybreakBot/1.0 (+https://github.com/appuchans/daybreak)", Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml" },
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const items = parseFeed(await res.text(), feed.name);
+  const items = parseFeed(await res.text(), feed.name).filter((i) => urlAllowed(i.url, feed));
   if (items.length === 0) throw new Error("no valid items");
   return items;
 }

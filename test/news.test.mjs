@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseFeed, buildSection, snippet, safeUrl, canonicalUrl, normalizeTitle, cleanText } from "../scripts/news.mjs";
+import { parseFeed, buildSection, snippet, safeUrl, canonicalUrl, normalizeTitle, cleanText, urlAllowed, sameStory, titleTokens } from "../scripts/news.mjs";
 
 const rss = `<?xml version="1.0"?><rss version="2.0"><channel>
 <item><title>Quake hits coast &amp; city</title><link>https://a.example/news/1?utm=x</link>
@@ -164,4 +164,34 @@ test("parses RSS 1.0 / RDF feeds (Deutsche Welle)", () => {
 test("inline tags do not split words or detach punctuation; block tags separate words", () => {
   assert.equal(cleanText("Kim <b>fired</b>. A<a href='x'>BC</a>D"), "Kim fired. ABCD");
   assert.equal(cleanText("<p>One</p><p>Two</p>line<br>break"), "One Two line break");
+});
+
+test("urlAllowed: `only` must match, `exclude` must not", () => {
+  const rules = { only: ["^/india-news/"], exclude: ["^/india-news/cities/"] };
+  assert.ok(urlAllowed("https://x.example/india-news/a-story-1", rules));
+  assert.ok(!urlAllowed("https://x.example/world-news/a-story-1", rules));
+  assert.ok(!urlAllowed("https://x.example/india-news/cities/a-story-1", rules));
+  assert.ok(urlAllowed("https://x.example/anything", {}));
+});
+
+const story = (title, source, minute = 0) => ({ title, snippet: "", url: `https://${source}.example/${encodeURIComponent(title)}`, source, publishedAt: Date.UTC(2026, 9, 3, 10, minute) });
+
+test("sameStory matches one event worded differently, and keeps different events apart", () => {
+  const same = (a, b) => sameStory(titleTokens(a), titleTokens(b));
+  assert.ok(same("Trump says Iran war will end 'very soon'", "Trump vows Iran war to end very quickly, very soon"));
+  assert.ok(same("India beat Pakistan to take Asian Games gold", "India beat Pakistan in Asian Games cricket final to take gold"));
+  assert.ok(!same("India beat Pakistan to take Asian Games gold", "India beat Malaysia 5-1 to retain Asian Games gold"));
+  assert.ok(!same("Fire at Mumbai chemical plant kills two", "Fire at Delhi chemical plant kills two"));
+});
+
+test("an event reported with different headlines by several outlets ranks first", () => {
+  const out = buildSection([
+    story("Solo regional story about a village road", "A", 50),
+    story("Parliament passes landmark data protection bill after long debate", "A", 10),
+    story("Landmark data protection bill passes Parliament after long debate", "B", 9),
+    story("Parliament passes data protection bill following long debate", "C", 8),
+  ]);
+  assert.match(out[0].title, /data protection/i);
+  assert.equal(out[0].alsoReportedBy.length, 2);
+  assert.equal(out.length, 2);
 });
