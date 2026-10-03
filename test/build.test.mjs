@@ -103,3 +103,37 @@ test("AI summaries: off without a key, added with one, and the key never reaches
     } finally { gemini.close(); }
   });
 });
+
+test("AI classification drops a local story from a classified section and caches the answers", async () => {
+  const mk = (title, n, desc = "") => `<item><title>${title}</title><link>https://x.example/${n}</link><description>${desc}</description><pubDate>Sat, 03 Oct 2026 0${n}:00:00 GMT</pubDate></item>`;
+  const xml = `<rss version="2.0"><channel>${mk("Parliament passes the national budget", 5)}${mk("Village road bridge planned in small town", 6)}${mk("Unclassified edge case story here", 7)}</channel></rss>`;
+  const dir = await mkdtemp(join(tmpdir(), "daybreak-"));
+  const seenPrompts = [];
+  const gemini = createServer((req, res) => {
+    let body = "";
+    req.on("data", (c) => (body += c));
+    req.on("end", () => {
+      const user = JSON.parse(body).contents[0].parts[0].text;
+      seenPrompts.push(JSON.parse(body).generationConfig.response_mime_type);
+      const items = JSON.parse(user.split("Items:\n")[1]);
+      const rows = items.filter((i) => !/edge case/.test(i.headline)).map((i) => ({ id: i.id, scope: /Village/.test(i.headline) ? "local" : "national", importance: /Village/.test(i.headline) ? 2 : 5 }));
+      res.setHeader("content-type", "application/json");
+      res.end(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(rows) }] } }] }));
+    });
+  });
+  await new Promise((r) => gemini.listen(0, "127.0.0.1", r));
+  try {
+    await withServer({ "/a": xml }, async (base) => {
+      const config = { perSource: 4, perSection: 12, sections: [{ id: "india", label: "India", classify: { dropScopes: ["local"], minImportance: 3, guidance: "G" }, feeds: [{ name: "A", url: `${base}/a` }] }] };
+      const r = await build(dir, config, null, { GEMINI_API_KEY: "TOPSECRET", GEMINI_BASE_URL: `http://127.0.0.1:${gemini.address().port}`, SUMMARY_DELAY_MS: "0" });
+      assert.equal(r.code, 0);
+      const titles = r.news.sections.india.items.map((i) => i.title);
+      assert.deepEqual(titles.sort(), ["Parliament passes the national budget", "Unclassified edge case story here"]);
+      assert.ok(r.out.includes("AI classification india: cached=0 classified=2 unclassified=1"));
+      assert.deepEqual(seenPrompts, ["application/json"]);
+      const cache = JSON.parse(await readFile(join(dir, "classify-cache.json"), "utf8"));
+      assert.deepEqual(cache["x.example/6"], { scope: "local", importance: 2 });
+      assert.ok(!JSON.stringify(r.news).includes("TOPSECRET") && !JSON.stringify(cache).includes("TOPSECRET"));
+    });
+  } finally { gemini.close(); }
+});

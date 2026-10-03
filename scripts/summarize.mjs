@@ -2,7 +2,9 @@
 // a rate limit or a model error the build still publishes, and cards fall back to the feed snippet.
 import { cleanText, canonicalUrl, normalizeTitle } from "./news.mjs";
 
-export const DEFAULT_MODEL = "gemini-3.5-flash-lite"; // the API itself named this when 2.5-flash-lite returned 404 "no longer available to new users" (2026-10-03)
+import { generate, HaltGemini, DEFAULT_MODEL } from "./gemini.mjs";
+
+export { DEFAULT_MODEL };
 const MIN_SNIPPET = 60; // shorter descriptions add nothing beyond the headline
 const MAX_SUMMARY = 300;
 
@@ -14,8 +16,7 @@ const SYSTEM = [
   "If the description adds nothing beyond the headline, reply with exactly SKIP.",
 ].join(" ");
 
-// Stop the whole run: the key is wrong or the quota is spent, so more calls would only fail.
-export class HaltSummaries extends Error {}
+export const HaltSummaries = HaltGemini;
 
 export function cleanSummary(raw) {
   const text = cleanText(raw).replace(/^["“'‘]+|["”'’]+$/g, "").trim();
@@ -23,40 +24,14 @@ export function cleanSummary(raw) {
   return text;
 }
 
-// Google's error body is {"error": {"code", "message", "status"}}. Keep a short, key-free excerpt so a
-// failure can be diagnosed from the build log.
-async function errorDetail(res, apiKey) {
-  try {
-    const e = (await res.json())?.error;
-    const text = `${e?.status ?? ""} ${e?.message ?? ""}`.split(apiKey).join("***").replace(/\s+/g, " ").trim().slice(0, 200);
-    return text ? ` ${text}` : "";
-  } catch {
-    return "";
-  }
-}
-
-export function geminiCaller({ apiKey, model = DEFAULT_MODEL, baseUrl = "https://generativelanguage.googleapis.com", timeoutMs = 20_000 }) {
+export function geminiCaller(options) {
   return async function summarize(story) {
-    // The key goes in a header, not the URL, so no error message or log line can carry it.
-    const res = await fetch(`${baseUrl}/v1beta/models/${model}:generateContent`, {
-      method: "POST",
-      signal: AbortSignal.timeout(timeoutMs),
-      headers: { "content-type": "application/json", "x-goog-api-key": apiKey },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: SYSTEM }] },
-        contents: [{ role: "user", parts: [{ text: `<item>\n<headline>${story.title}</headline>\n<description>${story.snippet}</description>\n</item>` }] }],
-        generationConfig: { maxOutputTokens: 200, temperature: 0.2 },
-      }),
+    const raw = await generate({
+      ...options,
+      system: SYSTEM,
+      user: `<item>\n<headline>${story.title}</headline>\n<description>${story.snippet}</description>\n</item>`,
+      maxOutputTokens: 200,
     });
-    if (!res.ok) {
-      const detail = await errorDetail(res, apiKey);
-      // 429 is the quota; 400/401/403 a bad or disabled key; 404 a model name this API does not serve.
-      // More calls would only repeat the failure, so these stop the run's calls.
-      if ([400, 401, 403, 404, 429].includes(res.status)) throw new HaltSummaries(`HTTP ${res.status}${detail}`);
-      throw new Error(`HTTP ${res.status}${detail}`);
-    }
-    const json = await res.json();
-    const raw = (json?.candidates?.[0]?.content?.parts ?? []).map((p) => p.text ?? "").join("");
     return cleanSummary(raw);
   };
 }

@@ -33,3 +33,9 @@ test("Indian general-news feeds only take articles filed under India or national
   assert.ok(byUrl("thehindu.com/news/national").exclude.some((p) => p.includes("cities")));
   for (const f of india.feeds) for (const p of [...(f.only ?? []), ...(f.exclude ?? [])]) assert.doesNotThrow(() => new RegExp(p), `${f.name}: ${p}`);
 });
+
+test("the India section asks the AI to drop local and foreign stories", () => {
+  const india = config.sections.find((s) => s.id === "india");
+  assert.deepEqual(india.classify.dropScopes, ["local", "international"]);
+  assert.ok(india.classify.minImportance >= 1 && india.classify.guidance.includes("local"));
+});

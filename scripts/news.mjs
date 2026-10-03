@@ -152,14 +152,20 @@ export function storyKeys(item) {
 // exclude: Set of storyKeys already placed in a more specific section; those stories are skipped
 // before the per-source cap, so the section backfills with the next story instead of shrinking.
 // maxAgeHours (with now): items older than that are dropped, so a dead feed cannot fill a section.
-// Ranking: stories carried by more than one source first, then each source's newest story before
+// Ranking: stories carried by more than one source first, then by AI importance when present, then each source's newest story before
 // any source's second story and so on (so a fast feed cannot crowd the others out of the top
 // perSection), then newest first.
-export function buildSection(items, { perSource = 4, perSection = 12, exclude = new Set(), maxAgeHours, now = Date.now() } = {}) {
+export function buildSection(items, { perSource = 4, perSection = 12, exclude = new Set(), maxAgeHours, now = Date.now(), classify } = {}) {
   const taken = new Map();
   const bySource = new Map();
+  // AI classification (optional): drop stories judged to be of the wrong scope or too minor for this
+  // section. Unclassified stories (no key, quota, bad output) are kept.
+  const wanted = (it) =>
+    !classify ||
+    !it.scope ||
+    (!classify.dropScopes?.includes(it.scope) && (it.importance ?? 5) >= (classify.minImportance ?? 1));
   const fresh = items.filter(
-    (it) => !storyKeys(it).some((k) => exclude.has(k)) && (maxAgeHours === undefined || now - it.publishedAt <= maxAgeHours * 3_600_000),
+    (it) => !storyKeys(it).some((k) => exclude.has(k)) && (maxAgeHours === undefined || now - it.publishedAt <= maxAgeHours * 3_600_000) && wanted(it),
   );
   const entries = [];
   for (const it of fresh.sort((a, b) => b.publishedAt - a.publishedAt)) {
@@ -183,7 +189,7 @@ export function buildSection(items, { perSource = 4, perSection = 12, exclude = 
     taken.set(urlKey, entry);
   }
   return [...new Set(taken.values())]
-    .sort((a, b) => b.sources.size - a.sources.size || a.sourceRank - b.sourceRank || b.item.publishedAt - a.item.publishedAt)
+    .sort((a, b) => b.sources.size - a.sources.size || (b.item.importance ?? 0) - (a.item.importance ?? 0) || a.sourceRank - b.sourceRank || b.item.publishedAt - a.item.publishedAt)
     .slice(0, perSection)
     .map(({ item, sources }) => ({ ...item, alsoReportedBy: [...sources].filter((s) => s !== item.source) }));
 }

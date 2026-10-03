@@ -27,6 +27,9 @@ test/      node:test suites for scripts/ and site/lib.js
 ## Remaining (Phase 3, reading features; localStorage only)
 Bookmarks, read state, source filter, text size, and optionally a pull-to-refresh gesture.
 
+## AI for background work (Gemini free tier)
+Classification (India section): Gemini judges scope and importance of each candidate headline so local, state and foreign stories are dropped; chosen because URL rules cannot tell a small-town railway bridge from national news. Built 2026-10-03; judge it by reading the India tab over a few days.
+
 ## Trial: AI summaries (Gemini free tier)
 Built 2026-10-03, off until a `GEMINI_API_KEY` secret exists. Keep if the summaries prove useful; otherwise remove the secret or revert the commit. Questions to answer from the trial: are one-sentence summaries of a feed snippet better than the snippet, does the free tier cover ~30 new stories per 30 minutes, and are summaries accurate.
 

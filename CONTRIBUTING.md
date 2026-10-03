@@ -33,11 +33,21 @@ cp news.json site/ && cd site && python3 -m http.server 8000
 - India-based outlets feed the India section only, through their India-specific feeds. `test/config.test.mjs` fails if one is added elsewhere.
 - Feeds that share a `name` count as one source for ranking. RSS 2.0, RSS 1.0 (RDF) and Atom are parsed.
 
+## AI classification (Gemini)
+
+`scripts/classify.mjs`, run for any section whose `feeds.json` entry has a `classify` block (India today). Gemini rates each candidate headline's `scope` (national, state, local, international) and `importance` (1 to 5) against the section's `guidance` text; `dropScopes` and `minImportance` decide what is removed, and `importance` breaks ties after corroboration in the ranking.
+
+- The pool is each source's newest 2 x `perSource` stories, in batches of 40 per request, so removing stories still leaves enough to fill the section.
+- Answers are cached by canonical URL in `classify-cache.json`, which the workflow publishes next to `news.json` and fetches again on the next run, so each story is classified once. The page never reads that file.
+- Fail-open: no key, a quota error or unparseable output leaves stories unclassified, and unclassified stories are kept. The first `HaltGemini` error stops the run's remaining calls.
+- Model replies are validated (known scope, integer importance 1 to 5, id in range); headlines are passed to the model as data inside a JSON array.
+- `scripts/gemini.mjs` holds the one REST call used by classification and summaries.
+
 ## AI summaries (Gemini)
 
 `scripts/summarize.mjs`, called from `build-news.mjs`. Off unless the `GEMINI_API_KEY` secret exists.
 
-- Model `gemini-3.5-flash-lite` (override with `GEMINI_MODEL`), `generateContent` REST call, key in the `x-goog-api-key` header.
+- Model `gemini-3.5-flash-lite` (override with `GEMINI_MODEL`), `generateContent` REST call via `scripts/gemini.mjs`, key in the `x-goog-api-key` header.
 - Summaries come from the headline and feed description only, one sentence; descriptions under 60 characters are skipped, and the model may answer `SKIP`.
 - Each story is summarized once: earlier summaries are reused by canonical URL from the previously published `news.json`.
 - Free-tier limits are only visible in the AI Studio account, so each run makes at most `SUMMARY_MAX_PER_RUN` (30) new calls, lead stories first, 4 s apart (`SUMMARY_DELAY_MS`). HTTP 429/400/401/403 stop the run's calls (a warning in the log); three failures in a row do too. The build never fails because of summaries.

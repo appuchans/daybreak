@@ -1,4 +1,6 @@
 node_modules/
 news.json
+classify-cache.json
+previous-classify-cache.json
 previous-news.json
 _site/

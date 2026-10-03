@@ -29,6 +29,8 @@ jobs:
       - run: npm test
       - name: Fetch previously published news.json
         run: curl -fsSL "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/news.json" -o previous-news.json || true
+      - name: Fetch previous AI classification cache
+        run: curl -fsSL "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/classify-cache.json" -o previous-classify-cache.json || true
       - run: node scripts/build-news.mjs
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -36,7 +38,7 @@ jobs:
         run: |
           mkdir _site
           cp -r site/. _site/
-          cp news.json _site/
+          cp news.json classify-cache.json _site/
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
