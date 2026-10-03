@@ -56,3 +56,27 @@ test("refuses to publish when a section ends up empty", async () => {
     assert.notEqual(r.code, 0);
   });
 });
+
+test("a story carried by two sections is kept only in the later tab, and the earlier tab backfills", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "daybreak-"));
+  const item = (t, n) => `<item><title>${t}</title><link>https://x.example/${n}</link><pubDate>Sat, 03 Oct 2026 0${n}:00:00 GMT</pubDate></item>`;
+  const xml = (...items) => `<rss version="2.0"><channel>${items.join("")}</channel></rss>`;
+  await withServer({
+    "/world1": xml(item("Shared incident", 9), item("World only", 5)),
+    "/world2": xml(item("World backfill", 4)),
+    "/india1": xml(item("Shared incident", 9), item("India only", 6)),
+    "/india2": xml(item("India other", 3)),
+  }, async (base) => {
+    const config = { perSource: 4, perSection: 12, sections: [
+      { id: "world", label: "World", feeds: [{ name: "W1", url: `${base}/world1` }, { name: "W2", url: `${base}/world2` }] },
+      { id: "india", label: "India", feeds: [{ name: "I1", url: `${base}/india1` }, { name: "I2", url: `${base}/india2` }] },
+    ] };
+    const r = await build(dir, config, null);
+    assert.equal(r.code, 0);
+    const titles = (id) => r.news.sections[id].items.map((i) => i.title);
+    assert.deepEqual(r.news.order, ["world", "india"]);
+    assert.ok(titles("india").includes("Shared incident"));
+    assert.ok(!titles("world").includes("Shared incident"));
+    assert.deepEqual(titles("world").sort(), ["World backfill", "World only"]);
+  });
+});

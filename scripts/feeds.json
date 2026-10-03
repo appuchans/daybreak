@@ -17,6 +17,22 @@
         {
           "name": "Al Jazeera",
           "url": "https://www.aljazeera.com/xml/rss/all.xml"
+        },
+        {
+          "name": "France 24",
+          "url": "https://www.france24.com/en/rss"
+        },
+        {
+          "name": "CNA",
+          "url": "https://www.channelnewsasia.com/rssfeeds/8395986"
+        },
+        {
+          "name": "ABC Australia",
+          "url": "https://www.abc.net.au/news/feed/2942460/rss.xml"
+        },
+        {
+          "name": "UN News",
+          "url": "https://news.un.org/feed/subscribe/en/news/all/rss.xml"
         }
       ]
     },
@@ -35,6 +51,22 @@
         {
           "name": "The Guardian",
           "url": "https://www.theguardian.com/us-news/rss"
+        },
+        {
+          "name": "ABC News",
+          "url": "https://abcnews.go.com/abcnews/topstories"
+        },
+        {
+          "name": "NBC News",
+          "url": "https://feeds.nbcnews.com/nbcnews/public/news"
+        },
+        {
+          "name": "PBS NewsHour",
+          "url": "https://www.pbs.org/newshour/feeds/rss/headlines"
+        },
+        {
+          "name": "CBS News",
+          "url": "https://www.cbsnews.com/latest/rss/main"
         }
       ]
     },
@@ -51,8 +83,20 @@
           "url": "https://www.theverge.com/rss/index.xml"
         },
         {
-          "name": "The Guardian",
-          "url": "https://www.theguardian.com/technology/rss"
+          "name": "Wired",
+          "url": "https://www.wired.com/feed/rss"
+        },
+        {
+          "name": "Engadget",
+          "url": "https://www.engadget.com/rss.xml"
+        },
+        {
+          "name": "The Register",
+          "url": "https://www.theregister.com/headlines.atom"
+        },
+        {
+          "name": "TechCrunch",
+          "url": "https://techcrunch.com/feed/"
         }
       ]
     },
@@ -71,6 +115,18 @@
         {
           "name": "BBC News",
           "url": "https://feeds.bbci.co.uk/news/world/asia/india/rss.xml"
+        },
+        {
+          "name": "NDTV",
+          "url": "https://feeds.feedburner.com/ndtvnews-top-stories"
+        },
+        {
+          "name": "Hindustan Times",
+          "url": "https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml"
+        },
+        {
+          "name": "Scroll",
+          "url": "https://feeds.feedburner.com/ScrollinArticles.rss"
         }
       ]
     },
@@ -89,6 +145,30 @@
         {
           "name": "NPR",
           "url": "https://feeds.npr.org/1006/rss.xml"
+        },
+        {
+          "name": "CNBC",
+          "url": "https://www.cnbc.com/id/100003114/device/rss/rss.html"
+        },
+        {
+          "name": "MarketWatch",
+          "url": "https://feeds.content.dowjones.io/public/rss/mw_topstories"
+        },
+        {
+          "name": "Mint",
+          "url": "https://www.livemint.com/rss/markets"
+        },
+        {
+          "name": "Economic Times",
+          "url": "https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms"
+        },
+        {
+          "name": "Economic Times",
+          "url": "https://economictimes.indiatimes.com/industry/rssfeeds/13352306.cms"
+        },
+        {
+          "name": "BusinessLine",
+          "url": "https://www.thehindubusinessline.com/feeder/default.rss"
         }
       ]
     },
@@ -101,12 +181,20 @@
           "url": "https://feeds.bbci.co.uk/news/health/rss.xml"
         },
         {
-          "name": "The Guardian",
-          "url": "https://www.theguardian.com/society/health/rss"
-        },
-        {
           "name": "NPR",
           "url": "https://feeds.npr.org/1128/rss.xml"
+        },
+        {
+          "name": "STAT",
+          "url": "https://www.statnews.com/feed/"
+        },
+        {
+          "name": "KFF Health News",
+          "url": "https://kffhealthnews.org/feed/"
+        },
+        {
+          "name": "ScienceDaily",
+          "url": "https://www.sciencedaily.com/rss/health_medicine.xml"
         }
       ]
     }

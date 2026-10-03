@@ -97,12 +97,20 @@ export function parseFeed(xml, source) {
   return items;
 }
 
-// itemsBySource: Map<sourceName, item[]> (several feeds may share a name; they are merged).
+// The keys a story is recognised by across sources and sections: normalized title and canonical URL.
+export function storyKeys(item) {
+  return [normalizeTitle(item.title), canonicalUrl(item.url)];
+}
+
+// items: every item for one section (several feeds may share a source name).
+// exclude: Set of storyKeys already placed in a more specific section; those stories are skipped
+// before the per-source cap, so the section backfills with the next story instead of shrinking.
 // Ranking: stories carried by more than one source first, then newest first.
-export function buildSection(items, { perSource = 4, perSection = 12 } = {}) {
+export function buildSection(items, { perSource = 4, perSection = 12, exclude = new Set() } = {}) {
   const taken = new Map();
   const bySource = new Map();
-  for (const it of [...items].sort((a, b) => b.publishedAt - a.publishedAt)) {
+  const fresh = items.filter((it) => !storyKeys(it).some((k) => exclude.has(k)));
+  for (const it of fresh.sort((a, b) => b.publishedAt - a.publishedAt)) {
     const n = bySource.get(it.source) ?? 0;
     if (n >= perSource) continue;
     bySource.set(it.source, n + 1);

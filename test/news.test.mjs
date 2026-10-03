@@ -107,3 +107,15 @@ test("ignores tracking pixels in media and in body", () => {
   assert.equal(parseFeed(withMedia(`<media:content url="${px}" medium="image"/>`), "A")[0].image, null);
   assert.equal(parseFeed(withMedia(`<description><![CDATA[<img src="${px}"/>]]></description>`), "A")[0].image, null);
 });
+
+test("exclude skips stories placed elsewhere and backfills from the rest", () => {
+  const items = [
+    it("A", "Shared story", "https://a.example/shared", 9),
+    it("A", "Story two", "https://a.example/2", 8),
+    it("A", "Story three", "https://a.example/3", 7),
+  ];
+  const out = buildSection(items, { perSource: 2, exclude: new Set([normalizeTitle("Shared story")]) });
+  assert.deepEqual(out.map((i) => i.title), ["Story two", "Story three"]);
+  const byUrl = buildSection(items, { exclude: new Set([canonicalUrl("https://a.example/shared")]) });
+  assert.equal(byUrl.length, 2);
+});

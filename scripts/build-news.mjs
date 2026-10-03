@@ -1,7 +1,7 @@
 // Fetches every configured feed and writes news.json. A feed that fails keeps its
 // items from the previous published news.json, so one dead source never empties a section.
 import { readFile, writeFile } from "node:fs/promises";
-import { parseFeed, buildSection } from "./news.mjs";
+import { parseFeed, buildSection, storyKeys } from "./news.mjs";
 
 const config = JSON.parse(await readFile(process.env.FEEDS_CONFIG ?? new URL("./feeds.json", import.meta.url), "utf8"));
 const previous = await readFile(process.env.PREVIOUS_NEWS ?? "previous-news.json", "utf8")
@@ -22,8 +22,11 @@ async function fetchFeed(feed) {
 const status = [];
 const sections = {};
 let failedSections = 0;
+// A story belongs to one section only. Sections are built from the last tab to the first, so a
+// later (more specific) tab wins: a Flydubai story that is both India and World stays in India.
+const placed = new Set();
 
-for (const section of config.sections) {
+for (const section of [...config.sections].reverse()) {
   const results = await Promise.all(
     section.feeds.map(async (feed) => {
       try {
@@ -44,7 +47,8 @@ for (const section of config.sections) {
   items = items.concat(carried);
   const live = results.filter((r) => r.ok).length;
   if (live < 2) console.log(`::warning::${section.id} has only ${live} live source(s)`);
-  const built = buildSection(items, config);
+  const built = buildSection(items, { ...config, exclude: placed });
+  for (const item of built) storyKeys(item).forEach((k) => placed.add(k));
   if (built.length === 0) {
     console.log(`::error::${section.id} has no items; refusing to publish an empty section`);
     failedSections++;
@@ -53,5 +57,5 @@ for (const section of config.sections) {
 }
 
 if (failedSections > 0) process.exit(1);
-await writeFile("news.json", JSON.stringify({ generatedAt: new Date().toISOString(), order: config.sections.map((s) => s.id), sections, feedStatus: status }, null, 1));
+await writeFile("news.json", JSON.stringify({ generatedAt: new Date().toISOString(), order: config.sections.map((s) => s.id), sections: Object.fromEntries(config.sections.map((s) => [s.id, sections[s.id]])), feedStatus: status }, null, 1));
 console.log(`wrote news.json: ${Object.entries(sections).map(([k, v]) => `${k}=${v.items.length}`).join(" ")}`);
