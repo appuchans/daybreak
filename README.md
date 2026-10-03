@@ -1,6 +1,6 @@
 # Daybreak
 
-Top news for your phone: World, US, Tech, India. Free to run, no servers, no API keys.
+Top news for your phone: World, US, Tech, India, Business, Health. Free to run, no servers, no API keys.
 
 A scheduled GitHub Action (`.github/workflows/news.yml`) fetches the RSS feeds in `scripts/feeds.json`, writes `news.json`, and deploys it with `index.html` to GitHub Pages. The page reads `news.json` from its own origin and keeps the last good copy in localStorage.
 

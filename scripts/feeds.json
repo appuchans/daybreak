@@ -2,25 +2,113 @@
   "perSource": 4,
   "perSection": 12,
   "sections": [
-    { "id": "world", "label": "World", "feeds": [
-      { "name": "BBC News", "url": "https://feeds.bbci.co.uk/news/world/rss.xml" },
-      { "name": "The Guardian", "url": "https://www.theguardian.com/world/rss" },
-      { "name": "Al Jazeera", "url": "https://www.aljazeera.com/xml/rss/all.xml" }
-    ]},
-    { "id": "us", "label": "US", "feeds": [
-      { "name": "NPR", "url": "https://feeds.npr.org/1001/rss.xml" },
-      { "name": "BBC News", "url": "https://feeds.bbci.co.uk/news/world/us_and_canada/rss.xml" },
-      { "name": "The Guardian", "url": "https://www.theguardian.com/us-news/rss" }
-    ]},
-    { "id": "tech", "label": "Tech", "feeds": [
-      { "name": "Ars Technica", "url": "https://feeds.arstechnica.com/arstechnica/index" },
-      { "name": "The Verge", "url": "https://www.theverge.com/rss/index.xml" },
-      { "name": "The Guardian", "url": "https://www.theguardian.com/technology/rss" }
-    ]},
-    { "id": "india", "label": "India", "feeds": [
-      { "name": "The Hindu", "url": "https://www.thehindu.com/news/national/feeder/default.rss" },
-      { "name": "Times of India", "url": "https://timesofindia.indiatimes.com/rssfeedstopstories.cms" },
-      { "name": "BBC News", "url": "https://feeds.bbci.co.uk/news/world/asia/india/rss.xml" }
-    ]}
+    {
+      "id": "world",
+      "label": "World",
+      "feeds": [
+        {
+          "name": "BBC News",
+          "url": "https://feeds.bbci.co.uk/news/world/rss.xml"
+        },
+        {
+          "name": "The Guardian",
+          "url": "https://www.theguardian.com/world/rss"
+        },
+        {
+          "name": "Al Jazeera",
+          "url": "https://www.aljazeera.com/xml/rss/all.xml"
+        }
+      ]
+    },
+    {
+      "id": "us",
+      "label": "US",
+      "feeds": [
+        {
+          "name": "NPR",
+          "url": "https://feeds.npr.org/1001/rss.xml"
+        },
+        {
+          "name": "BBC News",
+          "url": "https://feeds.bbci.co.uk/news/world/us_and_canada/rss.xml"
+        },
+        {
+          "name": "The Guardian",
+          "url": "https://www.theguardian.com/us-news/rss"
+        }
+      ]
+    },
+    {
+      "id": "tech",
+      "label": "Tech",
+      "feeds": [
+        {
+          "name": "Ars Technica",
+          "url": "https://feeds.arstechnica.com/arstechnica/index"
+        },
+        {
+          "name": "The Verge",
+          "url": "https://www.theverge.com/rss/index.xml"
+        },
+        {
+          "name": "The Guardian",
+          "url": "https://www.theguardian.com/technology/rss"
+        }
+      ]
+    },
+    {
+      "id": "india",
+      "label": "India",
+      "feeds": [
+        {
+          "name": "The Hindu",
+          "url": "https://www.thehindu.com/news/national/feeder/default.rss"
+        },
+        {
+          "name": "Times of India",
+          "url": "https://timesofindia.indiatimes.com/rssfeedstopstories.cms"
+        },
+        {
+          "name": "BBC News",
+          "url": "https://feeds.bbci.co.uk/news/world/asia/india/rss.xml"
+        }
+      ]
+    },
+    {
+      "id": "business",
+      "label": "Business",
+      "feeds": [
+        {
+          "name": "BBC News",
+          "url": "https://feeds.bbci.co.uk/news/business/rss.xml"
+        },
+        {
+          "name": "The Guardian",
+          "url": "https://www.theguardian.com/uk/business/rss"
+        },
+        {
+          "name": "NPR",
+          "url": "https://feeds.npr.org/1006/rss.xml"
+        }
+      ]
+    },
+    {
+      "id": "health",
+      "label": "Health",
+      "feeds": [
+        {
+          "name": "BBC News",
+          "url": "https://feeds.bbci.co.uk/news/health/rss.xml"
+        },
+        {
+          "name": "The Guardian",
+          "url": "https://www.theguardian.com/society/health/rss"
+        },
+        {
+          "name": "NPR",
+          "url": "https://feeds.npr.org/1128/rss.xml"
+        }
+      ]
+    }
   ]
 }
