@@ -185,8 +185,6 @@ export function storyKeys(item) {
 // any source's second story and so on (so a fast feed cannot crowd the others out of the top
 // perSection), then newest first.
 export function buildSection(items, { perSource = 4, perSection = 12, exclude = new Set(), maxAgeHours, now = Date.now(), classify } = {}) {
-  const taken = new Map();
-  const bySource = new Map();
   // AI classification (optional): drop stories judged to be of the wrong scope or too minor for this
   // section. Unclassified stories (no key, quota, bad output) are kept.
   const wanted = (it) =>
@@ -198,11 +196,12 @@ export function buildSection(items, { perSource = 4, perSection = 12, exclude = 
   const fresh = items.filter(
     (it) => !isRoundup(it.title) && !storyKeys(it).some((k) => exclude.has(k)) && (maxAgeHours === undefined || now - it.publishedAt <= maxAgeHours * 3_600_000) && wanted(it),
   );
+  // Cluster the same story first (exact title/URL, similar wording, or a shared AI eventId), newest first so
+  // the newest report represents the cluster. The per-source cap comes after ranking, not before: capping at a
+  // source's newest stories would hide its important older ones behind its minor newer ones.
+  const taken = new Map();
   const entries = [];
   for (const it of fresh.sort((a, b) => b.publishedAt - a.publishedAt)) {
-    const n = bySource.get(it.source) ?? 0;
-    if (n >= perSource) continue;
-    bySource.set(it.source, n + 1);
     const key = normalizeTitle(it.title);
     const urlKey = canonicalUrl(it.url);
     const tokens = titleTokens(it.title);
@@ -214,21 +213,34 @@ export function buildSection(items, { perSource = 4, perSection = 12, exclude = 
       taken.set(urlKey, hit);
       continue;
     }
-    const entry = { item: it, sources: new Set([it.source]), sourceRank: n, tokens };
+    const entry = { item: it, sources: new Set([it.source]), tokens };
     entries.push(entry);
     taken.set(key, entry);
     taken.set(urlKey, entry);
   }
   // Score = AI importance (3 when unrated) plus up to 2 for other outlets carrying the story, plus the
-  // section's bonus when the story's topic is one it wants first (`classify.priorityTopics`). Ties go to the
-  // source whose turn it is (each source's newest first), then to the newest story.
+  // section's bonus when the story's topic is one it wants first (`classify.priorityTopics`).
   const topicBonus = (e) => (classify?.priorityTopics?.includes(e.item.topic) ? (classify.priorityBonus ?? 1) : 0);
   const score = (e) => (e.item.importance ?? 3) + Math.min(2, e.sources.size - 1) + topicBonus(e);
-  return [...new Set(taken.values())]
-    .sort((a, b) => score(b) - score(a) || a.sourceRank - b.sourceRank || b.item.publishedAt - a.item.publishedAt)
-    .slice(0, perSection)
-    .map(({ item, sources }) => {
-      const { eventId, ...rest } = item; // internal grouping label, not part of the output
-      return { ...rest, alsoReportedBy: [...sources].filter((s) => s !== item.source) };
-    });
+  // Ties go to the source whose turn it is: within each source, rank its stories by score then recency, and
+  // let every source's best go before any source's second best.
+  const bySource = new Map();
+  for (const e of entries) bySource.set(e.item.source, [...(bySource.get(e.item.source) ?? []), e]);
+  for (const list of bySource.values()) {
+    list.sort((a, b) => score(b) - score(a) || b.item.publishedAt - a.item.publishedAt);
+    list.forEach((e, i) => (e.sourceRank = i));
+  }
+  const picked = [];
+  const used = new Map();
+  for (const e of entries.sort((a, b) => score(b) - score(a) || a.sourceRank - b.sourceRank || b.item.publishedAt - a.item.publishedAt)) {
+    const n = used.get(e.item.source) ?? 0;
+    if (n >= perSource) continue;
+    used.set(e.item.source, n + 1);
+    picked.push(e);
+    if (picked.length >= perSection) break;
+  }
+  return picked.map(({ item, sources }) => {
+    const { eventId, ...rest } = item; // internal grouping label, not part of the output
+    return { ...rest, alsoReportedBy: [...sources].filter((s) => s !== item.source) };
+  });
 }

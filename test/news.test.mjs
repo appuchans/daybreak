@@ -239,3 +239,12 @@ test("trimPool keeps each source's newest stories, with a larger allowance for s
   assert.equal(out.filter((i) => i.source === "many").length, 6);
   assert.deepEqual(out.filter((i) => i.source === "one").map((i) => i.publishedAt).sort(), [8, 9], "the newest ones");
 });
+
+test("the per-source cap applies after ranking: a source's important older story beats its minor newer ones", () => {
+  const mk = (n, importance, source = "A") => ({ title: `Unrelated distinct headline ${n} ${source}`, snippet: "", url: `https://${source}.example/${n}`, source, publishedAt: n, importance });
+  const items = [mk(1, 5), mk(2, 3), mk(3, 3), mk(4, 3), mk(5, 3), mk(1, 3, "B")];
+  const out = buildSection(items, { perSource: 4, classify: { minImportance: 2 } });
+  assert.equal(out[0].importance, 5, "the oldest story is first because it matters most");
+  assert.equal(out.filter((i) => i.source === "A").length, 4, "still at most perSource from one source");
+  assert.ok(out.some((i) => i.source === "B"));
+});
