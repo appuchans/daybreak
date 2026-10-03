@@ -31,6 +31,37 @@ export function safeUrl(u) {
   }
 }
 
+// Images are hotlinked, so only https URLs are kept: an http image would be blocked as mixed content.
+export function safeImageUrl(u) {
+  const url = safeUrl(u);
+  return url && url.startsWith("https:") ? url : null;
+}
+
+const IMG_EXT = /\.(jpe?g|png|webp|gif|avif)(\?|$)/i;
+
+// Best image for an item: media:content/thumbnail and enclosures (widest declared first),
+// then the first <img> in the item's HTML body.
+export function pickImage(r) {
+  const cands = [];
+  for (const m of [...asArray(r["media:content"]), ...asArray(r["media:thumbnail"]), ...asArray(r.enclosure)]) {
+    const url = m?.["@_url"];
+    if (!url) continue;
+    const type = m["@_type"] ?? "";
+    const medium = m["@_medium"] ?? "";
+    const imageLike = type.startsWith("image/") || medium === "image" || (!type && !medium && IMG_EXT.test(url));
+    if (!imageLike) continue;
+    cands.push({ url, width: Number(m["@_width"]) || 0 });
+  }
+  cands.sort((a, b) => b.width - a.width);
+  for (const c of cands) {
+    const ok = safeImageUrl(c.url);
+    if (ok) return ok;
+  }
+  const html = text(r["content:encoded"]) + text(r.description) + text(r.summary) + text(r.content);
+  const m = /<img[^>]+src=["']([^"']+)["']/i.exec(html);
+  return m ? safeImageUrl(m[1]) : null;
+}
+
 export function canonicalUrl(u) {
   const url = new URL(u);
   url.hash = "";
@@ -48,7 +79,7 @@ function atomLink(link) {
   return typeof alt === "object" ? alt?.["@_href"] : alt;
 }
 
-// Returns [{title, snippet, url, source, publishedAt(ms)}]; entries without a title,
+// Returns [{title, snippet, url, source, publishedAt(ms), image|null}]; entries without a title,
 // an http(s) link or a parseable date are dropped, not guessed at.
 export function parseFeed(xml, source) {
   const doc = parser.parse(xml);
@@ -59,7 +90,7 @@ export function parseFeed(xml, source) {
     const url = safeUrl(doc.rss ? (r.link ?? r.guid) : atomLink(r.link));
     const date = Date.parse(text(r.pubDate ?? r.published ?? r.updated ?? r["dc:date"]));
     if (!title || !url || Number.isNaN(date)) continue;
-    items.push({ title, snippet: snippet(r.description ?? r.summary ?? r.content), url, source, publishedAt: date });
+    items.push({ title, snippet: snippet(r.description ?? r.summary ?? r.content), url, source, publishedAt: date, image: pickImage(r) });
   }
   return items;
 }
@@ -78,6 +109,7 @@ export function buildSection(items, { perSource = 4, perSection = 12 } = {}) {
     const hit = taken.get(key) ?? taken.get(urlKey);
     if (hit) {
       hit.sources.add(it.source);
+      if (!hit.item.image && it.image) hit.item = { ...hit.item, image: it.image };
       taken.set(key, hit);
       taken.set(urlKey, hit);
       continue;

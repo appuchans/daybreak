@@ -16,11 +16,11 @@ Scheduled GitHub Action fetches RSS feeds, writes `news.json`, deploys it with t
 - Workflow: cron every 30 min + manual dispatch, deploy via Pages actions. Page falls back to localStorage, then the embedded snapshot, and shows "updated X ago" / offline.
 - First run verifies the feed list (this build environment cannot reach the feeds).
 
-## Phase 2: installable PWA
-Manifest, icons, service worker (cache-first shell, stale-while-revalidate for `news.json`).
+## Phase 2: installable PWA (built)
+Manifest, icons, service worker. One rule instead of per-resource strategies: same-origin GETs are network-first with a cache fallback, so a deploy is never hidden behind a stale shell. Publisher images are not cached.
 
 ## Phase 3: reading features
-Pull-to-refresh, bookmarks, read state, source filter, text size, thumbnails from feed media tags. localStorage only.
+Thumbnails from feed media tags (built, pulled forward): hotlinked https URLs only, the publisher sees the request. Remaining: pull-to-refresh, bookmarks, read state, source filter, text size. localStorage only.
 
 ## Phase 4: quality
 Split into `src/`; unit tests for normalizer and dedupe; Lighthouse and accessibility pass; CI on PRs.

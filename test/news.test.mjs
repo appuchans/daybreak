@@ -72,3 +72,32 @@ test("caps items per source and per section", () => {
 test("normalizeTitle is case, punctuation and whitespace insensitive", () => {
   assert.equal(normalizeTitle("  Hello,   WORLD! "), "hello world");
 });
+
+const withMedia = (inner) => `<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><item>
+<title>T</title><link>https://a.example/1</link><pubDate>Sat, 03 Oct 2026 08:00:00 GMT</pubDate>${inner}</item></channel></rss>`;
+
+test("picks the widest https media image", () => {
+  const [i] = parseFeed(withMedia(`<media:thumbnail url="https://i.example/small.jpg" width="240"/><media:thumbnail url="https://i.example/big.jpg" width="976"/>`), "A");
+  assert.equal(i.image, "https://i.example/big.jpg");
+});
+
+test("reads image enclosures and ignores non-image enclosures", () => {
+  assert.equal(parseFeed(withMedia(`<enclosure url="https://i.example/p.jpg" type="image/jpeg"/>`), "A")[0].image, "https://i.example/p.jpg");
+  assert.equal(parseFeed(withMedia(`<enclosure url="https://i.example/a.mp3" type="audio/mpeg"/>`), "A")[0].image, null);
+});
+
+test("falls back to the first <img> in the item body", () => {
+  const xml = withMedia(`<description><![CDATA[<p><img src="https://i.example/in-body.png" alt=""/>text</p>]]></description>`);
+  assert.equal(parseFeed(xml, "A")[0].image, "https://i.example/in-body.png");
+});
+
+test("drops http and non-http(s) images", () => {
+  assert.equal(parseFeed(withMedia(`<media:thumbnail url="http://i.example/x.jpg" width="100"/>`), "A")[0].image, null);
+  assert.equal(parseFeed(withMedia(`<media:thumbnail url="javascript:alert(1)" width="100"/>`), "A")[0].image, null);
+});
+
+test("a duplicate story inherits an image from another source", () => {
+  const a = { title: "Same story", snippet: "", url: "https://a.example/1", source: "A", publishedAt: 2, image: null };
+  const b = { title: "Same story", snippet: "", url: "https://b.example/1", source: "B", publishedAt: 1, image: "https://i.example/b.jpg" };
+  assert.equal(buildSection([a, b])[0].image, "https://i.example/b.jpg");
+});

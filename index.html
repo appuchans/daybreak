@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#0b1f4d">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Daybreak">
 <title>Daybreak News</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Public+Sans:wght@400;500;600&display=swap">
 <style>
@@ -33,7 +39,15 @@ main{display:flex;flex-direction:column;gap:12px;padding-block:16px}
 .lead h2{font-size:26px}
 .note{font-size:13px;color:var(--muted);padding-block:8px}
 </style>
-<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}.status{font-size:13px;color:var(--muted);padding-block:6px 0}.empty{color:var(--muted);padding-block:24px;text-align:center}.also{font-size:12px;color:var(--muted);margin-top:6px}</style>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}.status{font-size:13px;color:var(--muted);padding-block:6px 0}.empty{color:var(--muted);padding-block:24px;text-align:center}.also{font-size:12px;color:var(--muted);margin-top:6px}
+.story{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 14px;align-items:start}
+.story{overflow:hidden}
+.story .txt{min-width:0}
+.story .thumb{grid-column:2;grid-row:1;width:88px;height:88px;border-radius:8px;object-fit:cover;background:var(--line)}
+.story.lead{display:block}
+.story.lead .thumb{display:block;height:auto;aspect-ratio:16/9;margin:-14px -16px 12px;width:calc(100% + 32px);max-width:none;border-radius:0}
+.story:not(.has-img){display:block}
+</style>
 </head>
 <body>
 <div class="wrap">
@@ -72,7 +86,8 @@ function render(){
   var list=data.sections[cur].items||[];
   feed.innerHTML=list.length?list.map(function(s,i){
     var also=s.alsoReportedBy&&s.alsoReportedBy.length?'<div class="also">Also reported by '+esc(s.alsoReportedBy.join(", "))+'</div>':"";
-    return'<a class="story'+(i===0?' lead':'')+'" href="'+esc(safe(s.url))+'" target="_blank" rel="noopener noreferrer"><div class="meta"><span>'+esc(s.source)+'</span></div><h2>'+esc(s.title)+'</h2>'+(s.snippet?'<p>'+esc(s.snippet)+'</p>':'')+also+'</a>'
+    var img=s.image&&/^https:\/\//i.test(s.image)?'<img class="thumb" src="'+esc(s.image)+'" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentNode.classList.remove(\'has-img\');this.remove()">':"";
+    return'<a class="story'+(i===0?' lead':'')+(img?' has-img':'')+'" href="'+esc(safe(s.url))+'" target="_blank" rel="noopener noreferrer">'+img+'<div class="txt"><div class="meta"><span>'+esc(s.source)+'</span></div><h2>'+esc(s.title)+'</h2>'+(s.snippet?'<p>'+esc(s.snippet)+'</p>':'')+also+'</div></a>'
   }).join(""):'<p class="empty">No stories in this section right now.</p>';
   var when=ago(data.generatedAt);
   statusEl.textContent=mode==="live"?"Updated "+when:mode==="saved"?"Offline. Showing stories saved "+when+".":"Live news unavailable. Showing sample stories from "+when+".";
@@ -86,6 +101,7 @@ fetch("news.json",{cache:"no-cache"}).then(function(r){if(!r.ok)throw new Error(
   if(!j||!j.sections)throw new Error("bad shape");
   data=j;mode="live";try{localStorage.setItem(KEY_DATA,JSON.stringify(j))}catch(e){}render();
 }).catch(function(){});
+if("serviceWorker" in navigator)window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})});
 </script>
 </body>
 </html>
