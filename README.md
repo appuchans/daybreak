@@ -6,7 +6,7 @@ Top news on your phone, in seven sections: World, US, India, Tech, Business, Hea
 
 ## What you get
 
-- **News Today**, a front page laid out like a newspaper: the day's biggest story at the top, then the top three stories from every section. Tap a section's name to open it. The app always opens here.
+- **News Today**, a front page laid out like a newspaper: the top World story leads, then the top three stories from every section, in the same order as the tabs. Tap a section's name to open it. The app always opens here.
 - The latest headlines from several publishers in each section, with a short summary, how long ago it was published, and a picture where the publisher provides one. Tapping a story opens it on the publisher's own site.
 - A refresh button, and the page refreshes itself when you come back to it after a while.
 - Dark and light themes that follow your phone's setting.

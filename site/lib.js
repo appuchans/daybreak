@@ -104,17 +104,11 @@ export const TODAY = "today";
 export const TODAY_LABEL = "News Today";
 const PER_SECTION = 3;
 
-// Same weighting the build ranks by: AI importance (3 when unrated) plus up to 2 for other outlets.
-const weight = (s) => (Number.isInteger(s.importance) ? s.importance : 3) + Math.min(2, s.alsoReportedBy?.length ?? 0);
-
-// The lead is the strongest of the sections' top stories; ties go to the earlier tab.
+// The page follows the tab order: the lead is the first section's top story (World's, normally), and the
+// sections follow in tab order. A score across sections put a Sports story above the world news.
 export function pickLead(order, sections) {
-  let best = null;
-  for (const id of order) {
-    const top = sections[id]?.items?.[0];
-    if (top && (!best || weight(top) > weight(best.item))) best = { id, item: top };
-  }
-  return best;
+  const id = order.find((s) => sections[s]?.items?.length);
+  return id ? { id, item: sections[id].items[0] } : null;
 }
 
 function headlineHtml(s, now) {
