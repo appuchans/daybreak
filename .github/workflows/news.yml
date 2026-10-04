@@ -2,7 +2,7 @@ name: Build and deploy
 
 on:
   schedule:
-    - cron: "30 * * * *"
+    - cron: "30 * * * *" # backup only; the schedule that runs is in scripts/config.json
   workflow_dispatch:
   push:
     branches: [main]
@@ -64,9 +64,10 @@ jobs:
       - id: deployment
         uses: actions/deploy-pages@v5
 
-  # Builds run every hour at half past (UTC). At about 10 Gemini calls a build that is roughly 240 of the free
-  # tier's 500 calls a day, leaving room for pushes and the occasional re-rating. GitHub's cron has never fired
-  # for this repository, so each run schedules the next: wait until the next half hour, then dispatch this
+  # Builds run on the schedule in scripts/config.json ("schedule": every 1 hour at 30 past, UTC, by default).
+  # Hourly at about 10 Gemini calls a build is roughly 240 of the free tier's 500 calls a day, leaving room for
+  # pushes and the occasional re-rating. GitHub's cron has never fired for this repository, so each run
+  # schedules the next: wait until the next update time, then dispatch this
   # workflow with the built-in token (workflow_dispatch is one of the two events that token may trigger).
   # `always()` keeps the chain alive after a failed build. Every push starts a chain too; the concurrency
   # group cancels the older waiting job, so only one chain survives.
@@ -76,17 +77,25 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       actions: write
+      contents: read
     concurrency:
       group: next-run
       cancel-in-progress: true
     steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: scripts/config.json
+          sparse-checkout-cone-mode: false
       - name: Wait for the next update time, then start it
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          every=$(jq -r '.schedule.everyHours' scripts/config.json)
+          minute=$(jq -r '.schedule.minutePast' scripts/config.json)
+          period=$((every * 3600))
           now=$(date -u +%s)
-          target=$(( now - now % 3600 + 1800 ))
-          while [ "$target" -le $((now + 120)) ]; do target=$((target + 3600)); done
+          target=$(( now - now % period + minute * 60 ))
+          while [ "$target" -le $((now + 120)) ]; do target=$((target + period)); done
           echo "Next update at $(date -u -d @"$target")"
           sleep $((target - now))
           gh workflow run news.yml --repo "$GITHUB_REPOSITORY" --ref main

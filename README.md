@@ -44,13 +44,24 @@ Daybreak has no server, so your own copy is a fork plus GitHub Pages:
 3. Open Settings, then Pages, and set the source to **GitHub Actions**.
 4. In the Actions tab, run "Build and deploy" once. Your site appears at `https://<your-user>.github.io/<repo-name>/` when it finishes.
 
-After that it updates itself every hour at half past: each run waits for the next update time, then starts it, because GitHub's own scheduler is unreliable on new repositories. To change the schedule, edit the `next` job in `.github/workflows/news.yml` and `UPDATE_TIMES_UTC` in `site/lib.js` together. If a source stops working, the run log names it. If the page says the latest update is running late, the chain has stopped: run "Build and deploy" from the Actions tab, or push any commit, to restart it.
+After that it updates itself every hour at half past: each run waits for the next update time, then starts it, because GitHub's own scheduler is unreliable on new repositories. To change how often it updates, edit `schedule` in `scripts/config.json` (every 1, 2, 3 or 4 hours, at a chosen minute past the hour, UTC). If a source stops working, the run log names it. If the page says the latest update is running late, the chain has stopped: run "Build and deploy" from the Actions tab, or push any commit, to restart it.
 
 To turn on the AI features, create a free Gemini API key in Google AI Studio and add it to your fork as a repository secret named `GEMINI_API_KEY` (Settings, Secrets and variables, Actions). Remove the secret to turn them off again.
 
-## Choose your own sources
+## Settings and sources
 
-Open `scripts/feeds.json`. Each section lists its feeds as a name and an RSS or Atom link. Add, remove or swap feeds there, commit, and the site rebuilds. Give every section at least two feeds so one outage doesn't empty it. If every feed in a section fails at once, that section keeps showing its last published stories while the others update.
+Everything you might want to change is in `scripts/config.json`:
+
+- `schedule`: how often the news updates (`everyHours`: 1 to 4; `minutePast`: the minute past the hour, UTC).
+- `perSection`, `perSource`, `perStory`, `maxAgeHours`, `minFill`: cards per section, the most per outlet and per ongoing story, the oldest story allowed (sections can override it), and how many cards a section needs before older stories may fill it.
+- `staleAfterMinutes`: when the page starts saying how old the stories are.
+- `topNews`: the home tab's name, which sections can supply its lead story, and headlines per section.
+- `ai`: the Gemini model and how many new "What it's about" lines a build may write.
+- `sections`: the tabs, in order, with their feeds and AI rules.
+
+Commit a change and the site rebuilds with it.
+
+To change sources, open `scripts/config.json`. Each section lists its feeds as a name and an RSS or Atom link. Add, remove or swap feeds there, commit, and the site rebuilds. Give every section at least two feeds so one outage doesn't empty it. If every feed in a section fails at once, that section keeps showing its last published stories while the others update.
 
 ## Good to know
 

@@ -23,9 +23,9 @@ async function withServer(routes, fn) {
 }
 
 async function build(dir, config, previous, extraEnv = {}) {
-  const cfg = join(dir, "feeds.json");
+  const cfg = join(dir, "config.json");
   await writeFile(cfg, JSON.stringify(config));
-  const env = { ...process.env, GEMINI_API_KEY: "", GEMINI_MIN_INTERVAL_MS: "0", GEMINI_RETRY_DELAY_MS: "0", DESCRIBE_MAX_PER_RUN: "0", FEEDS_CONFIG: cfg, PREVIOUS_NEWS: join(dir, "previous-news.json"), ...extraEnv };
+  const env = { ...process.env, GEMINI_API_KEY: "", GEMINI_MIN_INTERVAL_MS: "0", GEMINI_RETRY_DELAY_MS: "0", DESCRIBE_MAX_PER_RUN: "0", CONFIG_FILE: cfg, PREVIOUS_NEWS: join(dir, "previous-news.json"), ...extraEnv };
   if (previous) await writeFile(env.PREVIOUS_NEWS, JSON.stringify(previous));
   return run("node", [script], { cwd: dir, env }).then(
     async (r) => ({ code: 0, news: JSON.parse(await readFile(join(dir, "news.json"), "utf8")), out: r.stdout }),
@@ -45,6 +45,7 @@ test("a dead feed keeps its previous items and the other feed still publishes", 
     assert.ok(titles.includes("Old dead story"));
     assert.equal(titles.filter((t) => t.startsWith("A ")).length, 3);
     assert.equal(r.news.feedStatus.find((s) => s.name === "Dead").ok, false);
+    assert.equal(r.news.settings.schedule, undefined, "a config without page settings leaves them to the page's defaults");
   });
 });
 
@@ -289,7 +290,7 @@ test("freshness: stories older than the section's maxAgeHours are left out, unle
     // Short: three fresh, two between 24 and 48 h, one older than 48 h.
     "/short": xml("short", [1, 2, 3, 30, 40, 60]),
   }, async (base) => {
-    const config = { perSource: 12, perSection: 12, maxAgeHours: 24, sections: [
+    const config = { perSource: 12, perSection: 12, maxAgeHours: 24, schedule: { everyHours: 2, minutePast: 5 }, topNews: { label: "Front" }, sections: [
       { id: "world", label: "World", feeds: [{ name: "A", url: `${base}/full` }] },
       { id: "tech", label: "Tech", maxAgeHours: 24, feeds: [{ name: "B", url: `${base}/short` }] },
     ] };
@@ -301,5 +302,6 @@ test("freshness: stories older than the section's maxAgeHours are left out, unle
     const tech = r.news.sections.tech.items.map((i) => i.title);
     assert.deepEqual(tech, ["short story 0 about something", "short story 1 about something", "short story 2 about something", "short story 3 about something", "short story 4 about something"], "fresh first, then up to twice the age; never older");
     assert.ok(r.out.includes("tech: 3 stories within 24 h; 2 older ones fill the rest"));
+    assert.deepEqual(r.news.settings, { schedule: { everyHours: 2, minutePast: 5 }, topNews: { label: "Front" } }, "page settings are published with the stories");
   });
 });

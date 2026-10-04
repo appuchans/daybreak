@@ -7,7 +7,7 @@ import { classifyItems, geminiClassifier } from "./classify.mjs";
 import { enrichSnippets } from "./describe.mjs";
 import { groupEvents, geminiGrouper } from "./group.mjs";
 
-const config = JSON.parse(await readFile(process.env.FEEDS_CONFIG ?? new URL("./feeds.json", import.meta.url), "utf8"));
+const config = JSON.parse(await readFile(process.env.CONFIG_FILE ?? new URL("./config.json", import.meta.url), "utf8"));
 const previous = await readFile(process.env.PREVIOUS_NEWS ?? "previous-news.json", "utf8")
   .then(JSON.parse)
   .catch(() => null);
@@ -28,12 +28,13 @@ async function fetchFeed(feed) {
 const classifyCache = new Map(Object.entries(
   await readFile(process.env.PREVIOUS_CLASSIFY ?? "previous-classify-cache.json", "utf8").then(JSON.parse).catch(() => ({})),
 ));
-const geminiOptions = { apiKey: process.env.GEMINI_API_KEY, model: process.env.GEMINI_MODEL || undefined, baseUrl: process.env.GEMINI_BASE_URL || undefined };
+// Settings come from config.json; the environment variables override them (for tests and one-off runs).
+const geminiOptions = { apiKey: process.env.GEMINI_API_KEY, model: process.env.GEMINI_MODEL || config.ai?.model || undefined, baseUrl: process.env.GEMINI_BASE_URL || undefined };
 // Extra spacing between AI steps; the per-minute limit itself is enforced in gemini.mjs for every call.
 const aiDelayMs = process.env.SUMMARY_DELAY_MS ? Number(process.env.SUMMARY_DELAY_MS) : 0;
 const usedInRun = new Set();
 
-const MIN_FILL = 8;
+const MIN_FILL = config.minFill ?? 8;
 const status = [];
 const sections = {};
 let failedSections = 0;
@@ -120,13 +121,15 @@ if (failedSections > 0) process.exit(1);
 
 // Optional AI summaries: off unless GEMINI_API_KEY is set (a repository secret in the workflow).
 if (process.env.GEMINI_API_KEY) {
-  const call = geminiCaller({ apiKey: process.env.GEMINI_API_KEY, model: process.env.GEMINI_MODEL || undefined, baseUrl: process.env.GEMINI_BASE_URL || undefined });
-  const stats = await summarizeSections(sections, { call, previous, maxNew: Number(process.env.SUMMARY_MAX_PER_RUN) || 10, delayMs: aiDelayMs });
+  const call = geminiCaller(geminiOptions);
+  const stats = await summarizeSections(sections, { call, previous, maxNew: Number(process.env.SUMMARY_MAX_PER_RUN) || config.ai?.summariesPerRun || 10, delayMs: aiDelayMs });
   console.log(`AI summaries: reused=${stats.reused} added=${stats.added} skipped=${stats.skipped} failed=${stats.failed}${stats.halted ? ` halted="${stats.halted}"` : ""}`);
 } else {
   console.log("AI summaries: off (GEMINI_API_KEY not set)");
 }
 // Keep only this run's stories in the cache so it cannot grow without bound.
 await writeFile("classify-cache.json", JSON.stringify(Object.fromEntries([...classifyCache].filter(([url]) => usedInRun.has(url)))));
-await writeFile("news.json", JSON.stringify({ generatedAt: new Date().toISOString(), order: config.sections.map((s) => s.id), sections: Object.fromEntries(config.sections.map((s) => [s.id, sections[s.id]])), feedStatus: status }, null, 1));
+// The page's own settings travel with the stories, so the page needs no code change when they do.
+const settings = { schedule: config.schedule, staleAfterMinutes: config.staleAfterMinutes, topNews: config.topNews };
+await writeFile("news.json", JSON.stringify({ generatedAt: new Date().toISOString(), settings, order: config.sections.map((s) => s.id), sections: Object.fromEntries(config.sections.map((s) => [s.id, sections[s.id]])), feedStatus: status }, null, 1));
 console.log(`wrote news.json: ${Object.entries(sections).map(([k, v]) => `${k}=${v.items.length}`).join(" ")}`);

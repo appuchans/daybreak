@@ -51,11 +51,21 @@ export function feedHtml(items, now = Date.now()) {
   return items?.length ? items.map((s, i) => storyHtml(s, i === 0, now)).join("") : '<p class="empty">No stories in this section right now.</p>';
 }
 
-// The site is rebuilt every hour at half past (UTC), which keeps the AI features within the free daily
-// quota. Keep UPDATE_TIMES_UTC in step with the schedule in .github/workflows/news.yml.
-// Past STALE_AFTER_MIN the page says how old the stories are and when newer ones are expected.
-export const UPDATE_TIMES_UTC = Array.from({ length: 24 }, (_, h) => h * 60 + 30); // minutes after midnight UTC
-export const STALE_AFTER_MIN = 30;
+// Page settings come from scripts/config.json, which the build copies into news.json as `settings`.
+// These defaults apply to the built-in sample and to a news.json from before settings existed.
+export const DEFAULTS = {
+  schedule: { everyHours: 1, minutePast: 30 }, // UTC; the workflow reads the same values
+  staleAfterMinutes: 30,
+  topNews: { label: "Top News", leadSections: ["world", "us", "india"], headlinesPerSection: 3 },
+};
+export function settingsOf(data) {
+  const s = data?.settings ?? {};
+  return {
+    schedule: { ...DEFAULTS.schedule, ...s.schedule },
+    staleAfterMinutes: s.staleAfterMinutes ?? DEFAULTS.staleAfterMinutes,
+    topNews: { ...DEFAULTS.topNews, ...s.topNews },
+  };
+}
 const BUILD_MIN = 10; // a build is published within about this long after its start time
 
 function duration(min) {
@@ -66,15 +76,17 @@ function duration(min) {
   return m ? `${h} h ${m} min` : `${h} h`;
 }
 
-// Start times of the update before and after `now` (ms).
-function updateTimes(now) {
-  const midnight = Date.UTC(new Date(now).getUTCFullYear(), new Date(now).getUTCMonth(), new Date(now).getUTCDate());
-  const all = [-1, 0, 1].flatMap((d) => UPDATE_TIMES_UTC.map((m) => midnight + d * 86_400_000 + m * 60_000));
-  return { last: Math.max(...all.filter((t) => t <= now)), next: Math.min(...all.filter((t) => t > now)) };
+// Start times of the update before and after `now` (ms): every `everyHours` hours from midnight UTC, at
+// `minutePast` past the hour, the same times the workflow's `next` job waits for.
+function updateTimes(now, { everyHours, minutePast } = DEFAULTS.schedule) {
+  const period = everyHours * 3_600_000;
+  let last = now - (now % period) + minutePast * 60_000;
+  if (last > now) last -= period;
+  return { last, next: last + period };
 }
 
-export function minutesToNextUpdate(now = Date.now()) {
-  return Math.round((updateTimes(now).next - now) / 60_000);
+export function minutesToNextUpdate(now = Date.now(), settings = DEFAULTS) {
+  return Math.round((updateTimes(now, settings.schedule).next - now) / 60_000);
 }
 
 export function nextUpdateText(min) {
@@ -82,12 +94,12 @@ export function nextUpdateText(min) {
 }
 
 // "" while the stories are fresh; otherwise how old they are and when newer ones are expected.
-export function staleText(generatedAt, now = Date.now()) {
+export function staleText(generatedAt, now = Date.now(), settings = DEFAULTS) {
   const t = Date.parse(generatedAt);
-  if (!Number.isFinite(t) || now - t < STALE_AFTER_MIN * 60_000) return "";
-  const { last } = updateTimes(now);
+  if (!Number.isFinite(t) || now - t < settings.staleAfterMinutes * 60_000) return "";
+  const { last } = updateTimes(now, settings.schedule);
   const late = t < last && now - last > (BUILD_MIN + 20) * 60_000;
-  return `These stories are from ${ago(generatedAt, now)}. ${late ? "The latest update is running late." : nextUpdateText(minutesToNextUpdate(now))}`;
+  return `These stories are from ${ago(generatedAt, now)}. ${late ? "The latest update is running late." : nextUpdateText(minutesToNextUpdate(now, settings))}`;
 }
 
 export function statusText(mode, generatedAt, note = "", now = Date.now()) {
@@ -100,20 +112,18 @@ export function statusText(mode, generatedAt, note = "", now = Date.now()) {
 }
 
 // "Top News": a newspaper-style front page built from the sections' own top stories (no extra data).
+// Its tab name, lead sections and headlines per section are `topNews` in config.json.
 export const TODAY = "today";
-export const TODAY_LABEL = "Top News";
-const PER_SECTION = 3;
 
 // The lead is the day's biggest story among the hard-news sections' top stories, by the build's own
 // weighting (AI importance, 3 when unrated, plus up to 2 for other outlets); ties go to the earlier tab.
 // Soft sections never lead (a Sports story once topped the page), and taking the strongest of three
 // sections, not always World's, keeps the page from opening exactly like the World tab.
-export const LEAD_SECTIONS = ["world", "us", "india"];
 const weight = (s) => (Number.isInteger(s.importance) ? s.importance : 3) + Math.min(2, s.alsoReportedBy?.length ?? 0);
 
-export function pickLead(order, sections) {
+export function pickLead(order, sections, leadSections = DEFAULTS.topNews.leadSections) {
   let best = null;
-  for (const id of order.filter((s) => LEAD_SECTIONS.includes(s))) {
+  for (const id of order.filter((s) => leadSections.includes(s))) {
     const top = sections[id]?.items?.[0];
     if (top && (!best || weight(top) > weight(best.item))) best = { id, item: top };
   }
@@ -130,13 +140,13 @@ function headlineHtml(s, now, withImage) {
   return `<li><a class="${img ? "has-img" : ""}" href="${esc(safeHref(s.url))}" target="_blank" rel="noopener noreferrer"><span class="fp-txt"><span class="fp-title">${esc(s.title)}</span><span class="fp-src">${esc(s.source)}${age}</span></span>${img}</a></li>`;
 }
 
-export function frontPageHtml(order, sections, now = Date.now()) {
-  const lead = pickLead(order, sections);
+export function frontPageHtml(order, sections, now = Date.now(), topNews = DEFAULTS.topNews) {
+  const lead = pickLead(order, sections, topNews.leadSections);
   if (!lead) return '<p class="empty">No stories right now.</p>';
   const blocks = order
     .filter((id) => sections[id]?.items?.length)
     .map((id) => {
-      const items = sections[id].items.filter((s) => s !== lead.item).slice(0, PER_SECTION);
+      const items = sections[id].items.filter((s) => s !== lead.item).slice(0, topNews.headlinesPerSection);
       if (!items.length) return "";
       const list = items.map((s, i) => headlineHtml(s, now, i === 0)).join("");
       return `<section class="fp-section"><button class="fp-head" type="button" data-c="${esc(id)}"><span>${esc(sections[id].label)}</span><span class="fp-more">More ›</span></button><ul class="fp-list">${list}</ul></section>`;

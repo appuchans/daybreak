@@ -3,10 +3,10 @@
 Constraints: no paid services; public repo; sections in order World, US, India, Tech, Business, Health, Sports (cricket and football only).
 
 ## Architecture
-A scheduled GitHub Action fetches RSS feeds (`scripts/feeds.json`), writes `news.json`, and deploys it with the static page in `site/` to GitHub Pages. The browser reads a same-origin file: no backend, no keys, no CORS.
+A scheduled GitHub Action fetches RSS feeds (`scripts/config.json`), writes `news.json`, and deploys it with the static page in `site/` to GitHub Pages. The browser reads a same-origin file: no backend, no keys, no CORS.
 
 ```
-scripts/   feeds.json, news.mjs (pure parse/rank), build-news.mjs (I/O), check-feeds.mjs (vetting)
+scripts/   config.json, news.mjs (pure parse/rank), build-news.mjs (I/O), check-feeds.mjs (vetting)
 site/      index.html, app.css, app.js (DOM), lib.js (pure, unit tested), fallback.js, sw.js, manifest, icons
 test/      node:test suites for scripts/ and site/lib.js
 .github/   news.yml (build + deploy, every hour at half past, and on push to main), ci.yml (PRs and non-main branches),

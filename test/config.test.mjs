@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const config = JSON.parse(await readFile(new URL("../scripts/feeds.json", import.meta.url), "utf8"));
+const config = JSON.parse(await readFile(new URL("../scripts/config.json", import.meta.url), "utf8"));
 
 test("feed config: unique section ids, >= 2 https feeds each", () => {
   const ids = config.sections.map((s) => s.id);
@@ -77,4 +77,15 @@ test("Sports keeps to cricket and football feeds", () => {
   for (const f of sports.feeds) for (const p of [...(f.only ?? []), ...(f.exclude ?? [])]) assert.doesNotThrow(() => new RegExp(p), `${f.name}: ${p}`);
   // General multi-sport feeds must be narrowed to a sport by URL path.
   assert.deepEqual(sports.feeds.find((f) => f.name === "talkSPORT").only, ["^/football/"]);
+});
+
+test("settings: schedule fits the workflow's wait (whole hours dividing a day, at most 4) and the page settings are complete", () => {
+  const { schedule, topNews } = config;
+  assert.ok([1, 2, 3, 4].includes(schedule.everyHours), "a job may wait at most 6 hours; the period must divide 24 hours");
+  assert.ok(Number.isInteger(schedule.minutePast) && schedule.minutePast >= 0 && schedule.minutePast < 60);
+  assert.ok(Number.isInteger(config.staleAfterMinutes) && config.staleAfterMinutes > 0);
+  assert.ok(topNews.label && Number.isInteger(topNews.headlinesPerSection) && topNews.headlinesPerSection > 0);
+  const ids = config.sections.map((s) => s.id);
+  assert.ok(topNews.leadSections.length && topNews.leadSections.every((id) => ids.includes(id)), "lead sections must exist");
+  assert.ok(config.ai.model && Number.isInteger(config.ai.summariesPerRun) && Number.isInteger(config.minFill));
 });

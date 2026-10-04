@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { esc, safeHref, safeImage, ago, heroImage, storyHtml, tabsHtml, feedHtml, statusText, staleText, nextUpdateText, minutesToNextUpdate, pickLead, frontPageHtml } from "../site/lib.js";
+import { esc, safeHref, safeImage, ago, heroImage, storyHtml, tabsHtml, feedHtml, statusText, staleText, nextUpdateText, minutesToNextUpdate, pickLead, frontPageHtml, settingsOf } from "../site/lib.js";
 
 test("esc escapes the five HTML-significant characters", () => {
   assert.equal(esc(`<a href="x">&'`), "&lt;a href=&quot;x&quot;&gt;&amp;&#39;");
@@ -122,4 +122,17 @@ test("Top News escapes feed text and neutralizes hostile links", () => {
   const html = frontPageHtml(["world"], { world: { label: "<i>W</i>", items: [{ ...evil, title: "Lead" }, evil, evil] } });
   assert.ok(!html.includes("<script>") && !html.includes("<b>") && !html.includes("<i>W"));
   assert.ok(!html.includes("javascript:"));
+});
+
+test("settings from news.json drive the schedule notice and Top News; missing ones fall back to defaults", () => {
+  const data = { settings: { schedule: { everyHours: 2, minutePast: 0 }, staleAfterMinutes: 60, topNews: { label: "Front", headlinesPerSection: 1 } } };
+  const s = settingsOf(data);
+  assert.deepEqual(s.topNews.leadSections, ["world", "us", "india"], "unset keys keep their defaults");
+  const now = Date.parse("2026-10-04T15:10:00Z");
+  assert.equal(minutesToNextUpdate(now, s), 50, "every two hours on the hour: next at 16:00");
+  assert.equal(staleText("2026-10-04T14:30:00Z", now, s), "", "under the 60-minute threshold");
+  assert.equal(staleText("2026-10-04T14:00:00Z", now, s), "These stories are from 1 h ago. Next update in about 50 min.");
+  const html = frontPageHtml(["world"], { world: { label: "World", items: [1, 2, 3].map((n) => ({ title: `W${n}`, url: `https://a.example/${n}`, source: "S", alsoReportedBy: [] })) } }, now, s.topNews);
+  assert.ok(html.includes(">W2<") && !html.includes(">W3<"), "one headline per section");
+  assert.deepEqual(settingsOf({}), settingsOf({ settings: {} }));
 });

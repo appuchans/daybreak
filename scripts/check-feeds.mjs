@@ -1,6 +1,6 @@
 // Reports, for each feed in a flat JSON list [{section, name, url}], whether it answers,
 // how many valid items it returns, how fresh the newest is, and how many carry an image.
-// Used to vet candidate sources before they enter feeds.json: node scripts/check-feeds.mjs scripts/candidates.json
+// Used to vet candidate sources before they enter config.json: node scripts/check-feeds.mjs scripts/candidates.json
 import { readFile } from "node:fs/promises";
 import { parseFeed } from "./news.mjs";
 

@@ -1,4 +1,4 @@
-import { ago, feedHtml, frontPageHtml, minutesToNextUpdate, nextUpdateText, staleText, statusText, tabsHtml, TODAY, TODAY_LABEL } from "./lib.js";
+import { ago, feedHtml, frontPageHtml, minutesToNextUpdate, nextUpdateText, settingsOf, staleText, statusText, tabsHtml, TODAY } from "./lib.js";
 import { FALLBACK } from "./fallback.js";
 
 const KEY_DATA = "dn-news";
@@ -30,7 +30,7 @@ function recall(key) {
 
 function showStatus() {
   statusEl.textContent = statusText(mode, data.generatedAt, note);
-  const stale = staleText(data.generatedAt);
+  const stale = staleText(data.generatedAt, Date.now(), settingsOf(data));
   staleEl.hidden = !stale;
   staleMsg.textContent = stale;
 }
@@ -40,8 +40,9 @@ function render() {
   // Fall back to the first tab for display only, so a saved tab the sample or an older copy lacks (Sports)
   // is still selected once the live stories arrive.
   const shown = current === TODAY || data.sections[current] ? current : TODAY;
-  tabs.innerHTML = tabsHtml([TODAY, ...order], { [TODAY]: { label: TODAY_LABEL }, ...data.sections }, shown);
-  feed.innerHTML = shown === TODAY ? frontPageHtml(order, data.sections) : feedHtml(data.sections[shown].items);
+  const { topNews } = settingsOf(data);
+  tabs.innerHTML = tabsHtml([TODAY, ...order], { [TODAY]: { label: topNews.label }, ...data.sections }, shown);
+  feed.innerHTML = shown === TODAY ? frontPageHtml(order, data.sections, Date.now(), topNews) : feedHtml(data.sections[shown].items);
   document.body.dataset.view = shown === TODAY ? "today" : "section";
   // Seven tabs overflow a phone screen: keep the selected one in view (Sports sits off-screen on the right).
   tabs.querySelector('[aria-pressed="true"]')?.scrollIntoView({ block: "nearest", inline: "nearest" });
@@ -66,7 +67,7 @@ async function load(manual) {
     data = json;
     mode = "live";
     if (manual) await new Promise((r) => setTimeout(r, Math.max(0, MIN_SPIN_MS - (Date.now() - started))));
-    const noNewer = `No newer stories yet. ${nextUpdateText(minutesToNextUpdate())}`;
+    const noNewer = `No newer stories yet. ${nextUpdateText(minutesToNextUpdate(Date.now(), settingsOf(json)))}`;
     note = manual && same ? noNewer : "";
     store(KEY_DATA, JSON.stringify(json));
     render();
