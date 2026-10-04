@@ -1,4 +1,4 @@
-import { ago, feedHtml, frontPageHtml, minutesToNextUpdate, nextUpdateText, settingsOf, staleText, statusText, tabsHtml, TODAY } from "./lib.js";
+import { ago, feedHtml, frontPageHtml, settingsOf, statusText, tabsHtml, TODAY } from "./lib.js";
 import { FALLBACK } from "./fallback.js";
 
 const KEY_DATA = "dn-news";
@@ -10,8 +10,6 @@ const feed = document.getElementById("feed");
 const statusEl = document.getElementById("status");
 const announceEl = document.getElementById("announce");
 const refreshBtn = document.getElementById("refresh");
-const staleEl = document.getElementById("stale");
-const staleMsg = document.getElementById("stale-text");
 
 let data = FALLBACK;
 let mode = "sample"; // "live" | "saved" | "sample"
@@ -30,9 +28,6 @@ function recall(key) {
 
 function showStatus() {
   statusEl.textContent = statusText(mode, data.generatedAt, note);
-  const stale = staleText(data.generatedAt, Date.now(), settingsOf(data));
-  staleEl.hidden = !stale;
-  staleMsg.textContent = stale;
 }
 
 function render() {
@@ -67,14 +62,13 @@ async function load(manual) {
     data = json;
     mode = "live";
     if (manual) await new Promise((r) => setTimeout(r, Math.max(0, MIN_SPIN_MS - (Date.now() - started))));
-    const noNewer = `No newer stories yet. ${nextUpdateText(minutesToNextUpdate(Date.now(), settingsOf(json)))}`;
-    note = manual && same ? noNewer : "";
+    note = "";
     store(KEY_DATA, JSON.stringify(json));
     render();
-    if (manual) announceEl.textContent = same ? noNewer : `News updated ${ago(json.generatedAt)}.`;
+    if (manual) announceEl.textContent = same ? "Up to date." : `News updated ${ago(json.generatedAt)}.`;
   } catch {
     if (manual) {
-      note = mode === "live" ? "Couldn't refresh. Check your connection." : "Couldn't refresh. You may be offline.";
+      note = "Couldn't refresh.";
       showStatus();
       announceEl.textContent = note;
     }
@@ -110,7 +104,6 @@ feed.addEventListener("error", (e) => {
 }, true);
 
 refreshBtn.addEventListener("click", () => load(true));
-document.getElementById("stale-refresh").addEventListener("click", () => load(true));
 
 // Coming back after a while: refresh quietly if the data is over 15 minutes old.
 document.addEventListener("visibilitychange", () => {

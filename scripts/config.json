@@ -1,6 +1,5 @@
 {
   "schedule": { "everyHours": 1, "minutePast": 30 },
-  "staleAfterMinutes": 30,
   "topNews": { "label": "Top News", "leadSections": ["world", "us", "india"], "headlinesPerSection": 3 },
   "ai": { "model": "gemini-3.5-flash-lite", "summariesPerRun": 10 },
   "minFill": 8,

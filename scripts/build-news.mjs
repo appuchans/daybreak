@@ -130,6 +130,6 @@ if (process.env.GEMINI_API_KEY) {
 // Keep only this run's stories in the cache so it cannot grow without bound.
 await writeFile("classify-cache.json", JSON.stringify(Object.fromEntries([...classifyCache].filter(([url]) => usedInRun.has(url)))));
 // The page's own settings travel with the stories, so the page needs no code change when they do.
-const settings = { schedule: config.schedule, staleAfterMinutes: config.staleAfterMinutes, topNews: config.topNews };
+const settings = { topNews: config.topNews };
 await writeFile("news.json", JSON.stringify({ generatedAt: new Date().toISOString(), settings, order: config.sections.map((s) => s.id), sections: Object.fromEntries(config.sections.map((s) => [s.id, sections[s.id]])), feedStatus: status }, null, 1));
 console.log(`wrote news.json: ${Object.entries(sections).map(([k, v]) => `${k}=${v.items.length}`).join(" ")}`);

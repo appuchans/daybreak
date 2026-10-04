@@ -83,7 +83,6 @@ test("settings: schedule fits the workflow's wait (whole hours dividing a day, a
   const { schedule, topNews } = config;
   assert.ok([1, 2, 3, 4].includes(schedule.everyHours), "a job may wait at most 6 hours; the period must divide 24 hours");
   assert.ok(Number.isInteger(schedule.minutePast) && schedule.minutePast >= 0 && schedule.minutePast < 60);
-  assert.ok(Number.isInteger(config.staleAfterMinutes) && config.staleAfterMinutes > 0);
   assert.ok(topNews.label && Number.isInteger(topNews.headlinesPerSection) && topNews.headlinesPerSection > 0);
   const ids = config.sections.map((s) => s.id);
   assert.ok(topNews.leadSections.length && topNews.leadSections.every((id) => ids.includes(id)), "lead sections must exist");

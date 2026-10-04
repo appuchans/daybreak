@@ -54,52 +54,10 @@ export function feedHtml(items, now = Date.now()) {
 // Page settings come from scripts/config.json, which the build copies into news.json as `settings`.
 // These defaults apply to the built-in sample and to a news.json from before settings existed.
 export const DEFAULTS = {
-  schedule: { everyHours: 1, minutePast: 30 }, // UTC; the workflow reads the same values
-  staleAfterMinutes: 30,
   topNews: { label: "Top News", leadSections: ["world", "us", "india"], headlinesPerSection: 3 },
 };
 export function settingsOf(data) {
-  const s = data?.settings ?? {};
-  return {
-    schedule: { ...DEFAULTS.schedule, ...s.schedule },
-    staleAfterMinutes: s.staleAfterMinutes ?? DEFAULTS.staleAfterMinutes,
-    topNews: { ...DEFAULTS.topNews, ...s.topNews },
-  };
-}
-const BUILD_MIN = 10; // a build is published within about this long after its start time
-
-function duration(min) {
-  if (min < 60) return `${min} min`;
-  const tens = Math.round(min / 10) * 10;
-  const h = Math.floor(tens / 60);
-  const m = tens % 60;
-  return m ? `${h} h ${m} min` : `${h} h`;
-}
-
-// Start times of the update before and after `now` (ms): every `everyHours` hours from midnight UTC, at
-// `minutePast` past the hour, the same times the workflow's `next` job waits for.
-function updateTimes(now, { everyHours, minutePast } = DEFAULTS.schedule) {
-  const period = everyHours * 3_600_000;
-  let last = now - (now % period) + minutePast * 60_000;
-  if (last > now) last -= period;
-  return { last, next: last + period };
-}
-
-export function minutesToNextUpdate(now = Date.now(), settings = DEFAULTS) {
-  return Math.round((updateTimes(now, settings.schedule).next - now) / 60_000);
-}
-
-export function nextUpdateText(min) {
-  return min > 5 ? `Next update in about ${duration(min)}.` : "Newer stories are due shortly.";
-}
-
-// "" while the stories are fresh; otherwise how old they are and when newer ones are expected.
-export function staleText(generatedAt, now = Date.now(), settings = DEFAULTS) {
-  const t = Date.parse(generatedAt);
-  if (!Number.isFinite(t) || now - t < settings.staleAfterMinutes * 60_000) return "";
-  const { last } = updateTimes(now, settings.schedule);
-  const late = t < last && now - last > (BUILD_MIN + 20) * 60_000;
-  return `These stories are from ${ago(generatedAt, now)}. ${late ? "The latest update is running late." : nextUpdateText(minutesToNextUpdate(now, settings))}`;
+  return { topNews: { ...DEFAULTS.topNews, ...data?.settings?.topNews } };
 }
 
 export function statusText(mode, generatedAt, note = "", now = Date.now()) {

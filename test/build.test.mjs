@@ -45,7 +45,7 @@ test("a dead feed keeps its previous items and the other feed still publishes", 
     assert.ok(titles.includes("Old dead story"));
     assert.equal(titles.filter((t) => t.startsWith("A ")).length, 3);
     assert.equal(r.news.feedStatus.find((s) => s.name === "Dead").ok, false);
-    assert.equal(r.news.settings.schedule, undefined, "a config without page settings leaves them to the page's defaults");
+    assert.equal(r.news.settings.topNews, undefined, "a config without page settings leaves them to the page's defaults");
   });
 });
 
@@ -302,6 +302,6 @@ test("freshness: stories older than the section's maxAgeHours are left out, unle
     const tech = r.news.sections.tech.items.map((i) => i.title);
     assert.deepEqual(tech, ["short story 0 about something", "short story 1 about something", "short story 2 about something", "short story 3 about something", "short story 4 about something"], "fresh first, then up to twice the age; never older");
     assert.ok(r.out.includes("tech: 3 stories within 24 h; 2 older ones fill the rest"));
-    assert.deepEqual(r.news.settings, { schedule: { everyHours: 2, minutePast: 5 }, topNews: { label: "Front" } }, "page settings are published with the stories");
+    assert.deepEqual(r.news.settings, { topNews: { label: "Front" } }, "page settings are published with the stories");
   });
 });

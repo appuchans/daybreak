@@ -11,7 +11,7 @@ Top news on your phone, in seven sections: World, US, India, Tech, Business, Hea
 - A refresh button, and the page refreshes itself when you come back to it after a while.
 - Dark and light themes that follow your phone's setting.
 - Works offline with the last stories it loaded, and on a slow connection shows them after a couple of seconds instead of waiting.
-- New stories every hour, at half past. When the stories are more than 30 minutes old, a notice at the top says how old they are and when the next update is due, with a button to check for newer ones.
+- New stories every hour, at half past, and a refresh button.
 - Optional AI help: a relevance check for the India section and plain "What it's about" lines for clickbait headlines (see below).
 
 ## AI features (optional)
@@ -44,7 +44,7 @@ Daybreak has no server, so your own copy is a fork plus GitHub Pages:
 3. Open Settings, then Pages, and set the source to **GitHub Actions**.
 4. In the Actions tab, run "Build and deploy" once. Your site appears at `https://<your-user>.github.io/<repo-name>/` when it finishes.
 
-After that it updates itself every hour at half past: each run waits for the next update time, then starts it, because GitHub's own scheduler is unreliable on new repositories. To change how often it updates, edit `schedule` in `scripts/config.json` (every 1, 2, 3 or 4 hours, at a chosen minute past the hour, UTC). If a source stops working, the run log names it. If the page says the latest update is running late, the chain has stopped: run "Build and deploy" from the Actions tab, or push any commit, to restart it.
+After that it updates itself every hour at half past: each run waits for the next update time, then starts it, because GitHub's own scheduler is unreliable on new repositories. To change how often it updates, edit `schedule` in `scripts/config.json` (every 1, 2, 3 or 4 hours, at a chosen minute past the hour, UTC). If a source stops working, the run log names it. If "Updated … ago" at the top of the page shows more than an hour or so, the chain has stopped: run "Build and deploy" from the Actions tab, or push any commit, to restart it.
 
 To turn on the AI features, create a free Gemini API key in Google AI Studio and add it to your fork as a repository secret named `GEMINI_API_KEY` (Settings, Secrets and variables, Actions). Remove the secret to turn them off again.
 
@@ -54,7 +54,6 @@ Everything you might want to change is in `scripts/config.json`:
 
 - `schedule`: how often the news updates (`everyHours`: 1 to 4; `minutePast`: the minute past the hour, UTC).
 - `perSection`, `perSource`, `perStory`, `maxAgeHours`, `minFill`: cards per section, the most per outlet and per ongoing story, the oldest story allowed (sections can override it), and how many cards a section needs before older stories may fill it.
-- `staleAfterMinutes`: when the page starts saying how old the stories are.
 - `topNews`: the home tab's name, which sections can supply its lead story, and headlines per section.
 - `ai`: the Gemini model and how many new "What it's about" lines a build may write.
 - `sections`: the tabs, in order, with their feeds and AI rules.
@@ -65,5 +64,5 @@ To change sources, open `scripts/config.json`. Each section lists its feeds as a
 
 ## Good to know
 
-- The refresh button fetches the newest stories that have been prepared. It can't prepare new ones early: if it says there are no newer stories, the next update isn't due yet.
+- The refresh button fetches the newest stories that have been prepared; new ones are prepared every hour.
 - Pictures load from the publishers' own servers, and a few publishers block that. Those stories show without a picture.
