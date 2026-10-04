@@ -21,6 +21,11 @@ jobs:
   build:
     if: ${{ !inputs.relay }}
     runs-on: ubuntu-latest
+    # One build at a time, and a newer one replaces an older one still running: two overlapping builds
+    # doubled the Gemini calls and let the older one deploy last (2026-10-04).
+    concurrency:
+      group: build
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
