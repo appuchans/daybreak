@@ -1,17 +1,18 @@
-import { ago, feedHtml, statusText, tabsHtml } from "./lib.js";
+import { ago, feedHtml, nextUpdateIn, nextUpdateText, staleText, statusText, tabsHtml } from "./lib.js";
 import { FALLBACK } from "./fallback.js";
 
 const KEY_DATA = "dn-news";
 const KEY_TAB = "dn-tab";
 const STALE_AFTER_MS = 15 * 60000;
 const MIN_SPIN_MS = 700; // a fast response should still visibly acknowledge the tap
-const NO_NEWER = "No newer stories yet. Rebuilt about every 30 minutes.";
 
 const tabs = document.getElementById("tabs");
 const feed = document.getElementById("feed");
 const statusEl = document.getElementById("status");
 const announceEl = document.getElementById("announce");
 const refreshBtn = document.getElementById("refresh");
+const staleEl = document.getElementById("stale");
+const staleMsg = document.getElementById("stale-text");
 
 let data = FALLBACK;
 let mode = "sample"; // "live" | "saved" | "sample"
@@ -30,6 +31,9 @@ function recall(key) {
 
 function showStatus() {
   statusEl.textContent = statusText(mode, data.generatedAt, note);
+  const stale = staleText(data.generatedAt);
+  staleEl.hidden = !stale;
+  staleMsg.textContent = stale;
 }
 
 function render() {
@@ -41,7 +45,7 @@ function render() {
 }
 
 // manual: show progress and say what happened. The page can only fetch the latest published
-// build (rebuilt about every 30 minutes); it cannot trigger a rebuild.
+// build (rebuilt about every two hours); it cannot trigger a rebuild.
 async function load(manual) {
   if (loading) return;
   loading = true;
@@ -58,10 +62,11 @@ async function load(manual) {
     data = json;
     mode = "live";
     if (manual) await new Promise((r) => setTimeout(r, Math.max(0, MIN_SPIN_MS - (Date.now() - started))));
-    note = manual && same ? NO_NEWER : "";
+    const noNewer = `No newer stories yet. ${nextUpdateText(nextUpdateIn(json.generatedAt))}`;
+    note = manual && same ? noNewer : "";
     store(KEY_DATA, JSON.stringify(json));
     render();
-    if (manual) announceEl.textContent = same ? NO_NEWER : `News updated ${ago(json.generatedAt)}.`;
+    if (manual) announceEl.textContent = same ? noNewer : `News updated ${ago(json.generatedAt)}.`;
   } catch {
     if (manual) {
       note = mode === "live" ? "Couldn't refresh. Check your connection." : "Couldn't refresh. You may be offline.";
@@ -92,6 +97,7 @@ feed.addEventListener("error", (e) => {
 }, true);
 
 refreshBtn.addEventListener("click", () => load(true));
+document.getElementById("stale-refresh").addEventListener("click", () => load(true));
 
 // Coming back after a while: refresh quietly if the data is over 15 minutes old.
 document.addEventListener("visibilitychange", () => {

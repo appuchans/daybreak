@@ -14,6 +14,8 @@ header{padding-block:20px 12px}
 .date{min-height:18px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
 .titlerow{display:flex;align-items:center;justify-content:space-between;gap:12px}
 h1{font-family:var(--display);font-size:32px;line-height:1.1;margin:4px 0 0;text-wrap:balance}
+.stale{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card);font-size:14px;color:var(--fg)}
+.stale button{flex:none;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--accent);background:transparent;color:var(--accent);font:600 14px var(--body);cursor:pointer}
 .status{min-height:20px;font-size:13px;color:var(--muted);padding-block:6px 0}
 .refresh{flex:none;width:44px;height:44px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--fg);display:grid;place-items:center;cursor:pointer;padding:0}
 .refresh:disabled{cursor:default;opacity:.7}

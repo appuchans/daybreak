@@ -9,7 +9,7 @@ A scheduled GitHub Action fetches RSS feeds (`scripts/feeds.json`), writes `news
 scripts/   feeds.json, news.mjs (pure parse/rank), build-news.mjs (I/O), check-feeds.mjs (vetting)
 site/      index.html, app.css, app.js (DOM), lib.js (pure, unit tested), fallback.js, sw.js, manifest, icons
 test/      node:test suites for scripts/ and site/lib.js
-.github/   news.yml (build + deploy, every 30 min and on push to main), ci.yml (PRs and non-main branches),
+.github/   news.yml (build + deploy, every two hours and on push to main), ci.yml (PRs and non-main branches),
            check-feeds.yml (vets scripts/candidates.json when it changes)
 ```
 

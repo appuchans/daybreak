@@ -6,7 +6,7 @@ Status and roadmap are in `PLAN.md`.
 
 ## Rebuild schedule
 
-GitHub's `schedule` trigger has never fired for this repository, so `news.yml` chains itself: after a deploy, the `next` job sleeps 25 minutes and dispatches the workflow again with the built-in token (`workflow_dispatch` is one of the two events that token may trigger). `always()` keeps the chain alive through a failed build. Every push starts a chain too; the `next-run` concurrency group (cancel-in-progress) cancels the older waiting job, so one chain survives. The deploy lock (`pages` group) sits on the deploy job, not the workflow, so the waiting job doesn't block pushes. The cron line is kept as a backup. To restart a broken chain, push or run the workflow by hand.
+GitHub's `schedule` trigger has never fired for this repository, so `news.yml` chains itself: after a deploy, the `next` job sleeps 118 minutes and dispatches the workflow again with the built-in token (`workflow_dispatch` is one of the two events that token may trigger). `always()` keeps the chain alive through a failed build. Every push starts a chain too; the `next-run` concurrency group (cancel-in-progress) cancels the older waiting job, so one chain survives. The deploy lock (`pages` group) sits on the deploy job, not the workflow, so the waiting job doesn't block pushes. The cron line is kept as a backup. The interval is two hours because each build makes about 10 Gemini calls (seven grouping requests plus new classifications and summaries); a 27-minute loop came to roughly 500 to 650 a day. The page's stale notice (`staleText` in `site/lib.js`) assumes the same interval through `UPDATE_EVERY_MIN`, so change both together. To restart a broken chain, push or run the workflow by hand.
 
 ## Layout
 

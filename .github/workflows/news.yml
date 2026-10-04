@@ -2,7 +2,7 @@ name: Build and deploy
 
 on:
   schedule:
-    - cron: "11,41 * * * *"
+    - cron: "11 */2 * * *"
   workflow_dispatch:
   push:
     branches: [main]
@@ -53,6 +53,7 @@ jobs:
       - id: deployment
         uses: actions/deploy-pages@v5
 
+  # Every two hours, to stay within the free Gemini quota (a 27-minute loop made ~500 calls a day).
   # GitHub's cron has never fired for this repository, so each run schedules the next: wait, then
   # dispatch this workflow again. workflow_dispatch is one of the two events a run may trigger with
   # the built-in token. `always()` keeps the chain alive after a failed build. Every push starts a
@@ -67,7 +68,7 @@ jobs:
       group: next-run
       cancel-in-progress: true
     steps:
-      - run: sleep 1500
+      - run: sleep 7080
       - run: gh workflow run news.yml --repo "$GITHUB_REPOSITORY" --ref main
         env:
           GH_TOKEN: ${{ github.token }}

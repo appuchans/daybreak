@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { esc, safeHref, safeImage, ago, heroImage, storyHtml, tabsHtml, feedHtml, statusText } from "../site/lib.js";
+import { esc, safeHref, safeImage, ago, heroImage, storyHtml, tabsHtml, feedHtml, statusText, staleText, nextUpdateText, nextUpdateIn } from "../site/lib.js";
 
 test("esc escapes the five HTML-significant characters", () => {
   assert.equal(esc(`<a href="x">&'`), "&lt;a href=&quot;x&quot;&gt;&amp;&#39;");
@@ -71,4 +71,18 @@ test("a what-it-is-about line replaces the snippet, is labelled, and is escaped"
   assert.ok(html.includes(`<span class="ai-tag">What it's about</span> Kim &lt;script&gt;x&lt;/script&gt; &amp; co`));
   assert.ok(!html.includes("Feed snippet."));
   assert.ok(storyHtml({ title: "T", snippet: "Feed snippet.", url: "https://a.example/1", source: "S" }).includes("Feed snippet."));
+});
+
+test("staleText: silent under 30 minutes, then says how old the stories are and when the next update is due", () => {
+  const now = Date.parse("2026-10-04T12:00:00Z");
+  const at = (min) => new Date(now - min * 60000).toISOString();
+  assert.equal(staleText(at(10), now), "");
+  assert.equal(staleText(at(45), now), "These stories are from 45 min ago. Next update in about 1 h 20 min.");
+  assert.equal(staleText(at(100), now), "These stories are from 2 h ago. Next update in about 20 min.");
+  assert.equal(staleText(at(118), now), "These stories are from 2 h ago. Newer stories are due shortly.");
+  assert.equal(staleText(at(200), now), "These stories are from 3 h ago. An update is overdue.");
+  assert.equal(staleText("not a date", now), "");
+  assert.equal(nextUpdateIn(at(30), now), 90);
+  assert.equal(nextUpdateText(90), "Next update in about 1 h 30 min.");
+  assert.equal(nextUpdateText(118), "Next update in about 2 h.");
 });
