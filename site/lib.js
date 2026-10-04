@@ -98,3 +98,42 @@ export function statusText(mode, generatedAt, note = "", now = Date.now()) {
     : `Live news unavailable. Showing sample stories from ${when}.`;
   return note ? `${base} · ${note}` : base;
 }
+
+// "News Today": a newspaper-style front page built from the sections' own top stories (no extra data).
+export const TODAY = "today";
+export const TODAY_LABEL = "News Today";
+const PER_SECTION = 3;
+
+// Same weighting the build ranks by: AI importance (3 when unrated) plus up to 2 for other outlets.
+const weight = (s) => (Number.isInteger(s.importance) ? s.importance : 3) + Math.min(2, s.alsoReportedBy?.length ?? 0);
+
+// The lead is the strongest of the sections' top stories; ties go to the earlier tab.
+export function pickLead(order, sections) {
+  let best = null;
+  for (const id of order) {
+    const top = sections[id]?.items?.[0];
+    if (top && (!best || weight(top) > weight(best.item))) best = { id, item: top };
+  }
+  return best;
+}
+
+function headlineHtml(s, now) {
+  const age = Number.isFinite(s.publishedAt) ? ` · ${esc(ago(s.publishedAt, now))}` : "";
+  return `<li><a href="${esc(safeHref(s.url))}" target="_blank" rel="noopener noreferrer"><span class="fp-title">${esc(s.title)}</span><span class="fp-src">${esc(s.source)}${age}</span></a></li>`;
+}
+
+export function frontPageHtml(order, sections, now = Date.now()) {
+  const lead = pickLead(order, sections);
+  if (!lead) return '<p class="empty">No stories right now.</p>';
+  const blocks = order
+    .filter((id) => sections[id]?.items?.length)
+    .map((id) => {
+      const items = sections[id].items.filter((s) => s !== lead.item).slice(0, PER_SECTION);
+      if (!items.length) return "";
+      const [first, ...rest] = items;
+      const more = rest.length ? `<ul class="fp-list">${rest.map((s) => headlineHtml(s, now)).join("")}</ul>` : "";
+      return `<section class="fp-section"><button class="fp-head" type="button" data-c="${esc(id)}"><span>${esc(sections[id].label)}</span><span class="fp-more">More ›</span></button>${storyHtml(first, false, now)}${more}</section>`;
+    })
+    .join("");
+  return `<div class="fp-lead">${storyHtml(lead.item, true, now)}</div><div class="fp-grid">${blocks}</div>`;
+}

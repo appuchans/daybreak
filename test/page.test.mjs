@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { esc, safeHref, safeImage, ago, heroImage, storyHtml, tabsHtml, feedHtml, statusText, staleText, nextUpdateText, minutesToNextUpdate } from "../site/lib.js";
+import { esc, safeHref, safeImage, ago, heroImage, storyHtml, tabsHtml, feedHtml, statusText, staleText, nextUpdateText, minutesToNextUpdate, pickLead, frontPageHtml } from "../site/lib.js";
 
 test("esc escapes the five HTML-significant characters", () => {
   assert.equal(esc(`<a href="x">&'`), "&lt;a href=&quot;x&quot;&gt;&amp;&#39;");
@@ -94,4 +94,28 @@ test("cards show how long ago the story was published", () => {
   assert.ok(html.includes('<div class="meta">BBC<span class="age"> · 2 h ago</span></div>'));
   assert.ok(!storyHtml({ title: "T", url: "https://a.example/1", source: "BBC" }).includes("class=\"age\""), "no age without a date");
   assert.equal(ago(now - 45 * 60_000, now), "45 min ago");
+});
+
+test("News Today: the lead is the strongest section top story (ties to the earlier tab) and is not repeated", () => {
+  const s = (title, extra = {}) => ({ title, url: `https://a.example/${encodeURIComponent(title)}`, source: "S", alsoReportedBy: [], ...extra });
+  const sections = {
+    world: { label: "World", items: [s("W1", { importance: 4 }), s("W2"), s("W3"), s("W4")] },
+    us: { label: "US", items: [s("U1", { importance: 4, alsoReportedBy: ["A", "B"] }), s("U2")] },
+    tech: { label: "Tech", items: [] },
+  };
+  assert.equal(pickLead(["world", "us", "tech"], sections).item.title, "U1");
+  assert.equal(pickLead(["world"], { world: sections.world }).item.title, "W1");
+  const html = frontPageHtml(["world", "us", "tech"], sections);
+  assert.equal(html.split(">U1<").length - 1, 1, "lead shown once");
+  assert.ok(html.includes(">W1<") && html.includes(">W3<") && !html.includes(">W4<"), "three per section");
+  assert.ok(html.includes('data-c="us"') && html.includes(">U2<"));
+  assert.ok(!html.includes('data-c="tech"'), "empty sections are left out");
+  assert.equal(frontPageHtml([], {}), '<p class="empty">No stories right now.</p>');
+});
+
+test("News Today escapes feed text and neutralizes hostile links", () => {
+  const evil = { title: "<script>x</script>", url: "javascript:alert(1)", source: "<b>", alsoReportedBy: [] };
+  const html = frontPageHtml(["world"], { world: { label: "<i>W</i>", items: [{ ...evil, title: "Lead" }, evil, evil] } });
+  assert.ok(!html.includes("<script>") && !html.includes("<b>") && !html.includes("<i>W"));
+  assert.ok(!html.includes("javascript:"));
 });

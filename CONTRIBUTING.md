@@ -4,6 +4,10 @@ Status and roadmap are in `PLAN.md`.
 
 **Rule: every change that users or forkers can notice also updates `README.md` in the same commit** (sections, sources, ranking, refresh and update behaviour, setup). Developer detail goes here, not in the README.
 
+## News Today (front page)
+
+`frontPageHtml` in `site/lib.js`, drawn from the published sections with no build or AI step. The lead is the strongest section top story by the build's own weighting (importance, 3 when unrated, plus up to 2 for other outlets), ties to the earlier tab; each section then shows its top three, skipping the lead. It is the first tab (`TODAY`) and the default view. Added 2026-10-04 as one commit so it can be reverted if the newspaper style doesn't work out.
+
 ## Offline shell and fonts
 
 `site/sw.js` serves the app's own files cache-first and refreshes them in the background (a deploy shows on the next open), and `news.json` network-first with the cached copy as fallback. Bump `CACHE` when the precached file list changes. The two fonts are bundled as variable woff2 files (latin and latin-ext subsets, downloaded from Google Fonts 2026-10-04) so the page makes no third-party request and keeps its fonts offline; only the latin files are precached.

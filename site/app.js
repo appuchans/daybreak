@@ -1,4 +1,4 @@
-import { ago, feedHtml, minutesToNextUpdate, nextUpdateText, staleText, statusText, tabsHtml } from "./lib.js";
+import { ago, feedHtml, frontPageHtml, minutesToNextUpdate, nextUpdateText, staleText, statusText, tabsHtml, TODAY, TODAY_LABEL } from "./lib.js";
 import { FALLBACK } from "./fallback.js";
 
 const KEY_DATA = "dn-news";
@@ -18,7 +18,7 @@ let data = FALLBACK;
 let mode = "sample"; // "live" | "saved" | "sample"
 let note = "";
 let loading = false;
-let current = "world";
+let current = TODAY;
 
 document.getElementById("date").textContent = new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
@@ -40,9 +40,10 @@ function render() {
   const order = data.order ?? Object.keys(data.sections);
   // Fall back to the first tab for display only, so a saved tab the sample or an older copy lacks (Sports)
   // is still selected once the live stories arrive.
-  const shown = data.sections[current] ? current : order[0];
-  tabs.innerHTML = tabsHtml(order, data.sections, shown);
-  feed.innerHTML = feedHtml(data.sections[shown].items);
+  const shown = current === TODAY || data.sections[current] ? current : TODAY;
+  tabs.innerHTML = tabsHtml([TODAY, ...order], { [TODAY]: { label: TODAY_LABEL }, ...data.sections }, shown);
+  feed.innerHTML = shown === TODAY ? frontPageHtml(order, data.sections) : feedHtml(data.sections[shown].items);
+  document.body.dataset.view = shown === TODAY ? "today" : "section";
   // Seven tabs overflow a phone screen: keep the selected one in view (Sports sits off-screen on the right).
   tabs.querySelector('[aria-pressed="true"]')?.scrollIntoView({ block: "nearest", inline: "nearest" });
   showStatus();
@@ -84,13 +85,22 @@ async function load(manual) {
   }
 }
 
-tabs.addEventListener("click", (e) => {
-  const button = e.target.closest(".tab");
-  if (!button) return;
-  current = button.dataset.c;
+function openTab(id) {
+  current = id;
   store(KEY_TAB, current);
   render();
   window.scrollTo(0, 0);
+}
+
+tabs.addEventListener("click", (e) => {
+  const button = e.target.closest(".tab");
+  if (button) openTab(button.dataset.c);
+});
+
+// News Today: a section's heading opens that section's tab.
+feed.addEventListener("click", (e) => {
+  const head = e.target.closest(".fp-head");
+  if (head) openTab(head.dataset.c);
 });
 
 // Image load errors do not bubble, so listen in the capture phase and fall back to a text-only card.
@@ -109,7 +119,7 @@ document.addEventListener("visibilitychange", () => {
 });
 setInterval(showStatus, 60000);
 
-current = recall(KEY_TAB) || "world";
+current = recall(KEY_TAB) || TODAY;
 try {
   const saved = JSON.parse(recall(KEY_DATA));
   if (saved?.sections) { data = saved; mode = "saved"; }
