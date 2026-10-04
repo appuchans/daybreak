@@ -16,11 +16,11 @@ body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-
 [hidden]{display:none!important}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .wrap{max-width:640px;margin-inline:auto}
-header{padding-block:20px 12px}
-.date{min-height:18px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+header{padding-block:12px 4px}
 .titlerow{display:flex;align-items:center;justify-content:space-between;gap:12px}
-h1{font-family:var(--display);font-size:32px;line-height:1.1;margin:4px 0 0;text-wrap:balance}
-.status{min-height:20px;font-size:13px;color:var(--muted);padding-block:6px 0}
+h1{font-family:var(--display);font-size:24px;line-height:1.1;margin:0}
+.status{font-size:13px;color:var(--muted);padding-block:4px 0}
+.status:empty{display:none}
 .refresh{flex:none;width:44px;height:44px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--fg);display:grid;place-items:center;cursor:pointer;padding:0}
 .refresh:disabled{cursor:default;opacity:.7}
 .refresh.spin svg{animation:spin .8s linear infinite}
@@ -46,20 +46,20 @@ main{min-height:70vh;display:flex;flex-direction:column;gap:12px;padding-block:1
 .thumb{grid-column:2;grid-row:1;width:88px;height:88px;border-radius:8px;object-fit:cover;background:var(--line)}
 .lead .thumb{display:block;height:auto;aspect-ratio:16/9;margin:-14px -16px 12px;width:calc(100% + 32px);max-width:none;border-radius:0}
 .empty{color:var(--muted);padding-block:24px;text-align:center}
-.note{font-size:13px;color:var(--muted);padding-block:8px}
 /* Top News: a newspaper-style front page. Flat, rule-separated blocks instead of cards. Every headline
    is the same size (19px, as on the section tabs); the lead stands out by position and picture only. */
 .fp-lead .lead h2{font-size:19px;line-height:1.25}
 [data-view="today"] main{gap:0}
 .fp-lead .story{border:0;border-radius:0;background:transparent;padding:0 0 4px}
 .fp-lead .lead .thumb{margin:0 0 12px;width:100%;border-radius:6px}
-.fp-section{border-top:2px solid var(--fg);margin-top:22px;padding-top:6px}
+.fp-section{border-top:2px solid var(--fg);margin-top:16px;padding-top:2px}
 .fp-head{display:flex;width:100%;justify-content:space-between;align-items:baseline;background:none;border:0;padding:4px 0 6px;color:var(--fg);cursor:pointer;font:700 13px var(--body);letter-spacing:.12em;text-transform:uppercase;min-height:44px}
 .fp-more{font-weight:600;letter-spacing:.02em;text-transform:none;color:var(--accent)}
 .fp-head:focus-visible,.fp-list a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .fp-list{list-style:none;margin:0;padding:0}
 .fp-list li+li{border-top:1px solid var(--line)}
 .fp-list a{display:block;padding:10px 0;color:inherit;text-decoration:none}
+.fp-list li:first-child a{padding-top:0}
 .fp-list a.has-img{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 14px;align-items:start}
 .fp-thumb{width:72px;height:72px;border-radius:6px;object-fit:cover;background:var(--line)}
 .fp-title{display:block;font-family:var(--display);font-size:19px;line-height:1.25;font-weight:600}

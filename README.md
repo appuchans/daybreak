@@ -44,7 +44,7 @@ Daybreak has no server, so your own copy is a fork plus GitHub Pages:
 3. Open Settings, then Pages, and set the source to **GitHub Actions**.
 4. In the Actions tab, run "Build and deploy" once. Your site appears at `https://<your-user>.github.io/<repo-name>/` when it finishes.
 
-After that it updates itself every hour at half past: each run waits for the next update time, then starts it, because GitHub's own scheduler is unreliable on new repositories. To change how often it updates, edit `schedule` in `scripts/config.json` (every 1, 2, 3 or 4 hours, at a chosen minute past the hour, UTC). If a source stops working, the run log names it. If "Updated … ago" at the top of the page shows more than an hour or so, the chain has stopped: run "Build and deploy" from the Actions tab, or push any commit, to restart it.
+After that it updates itself every hour at half past: each run waits for the next update time, then starts it, because GitHub's own scheduler is unreliable on new repositories. To change how often it updates, edit `schedule` in `scripts/config.json` (every 1, 2, 3 or 4 hours, at a chosen minute past the hour, UTC). If a source stops working, the run log names it. If the stories stop changing for more than an hour or two, the chain has stopped: run "Build and deploy" from the Actions tab, or push any commit, to restart it.
 
 To turn on the AI features, create a free Gemini API key in Google AI Studio and add it to your fork as a repository secret named `GEMINI_API_KEY` (Settings, Secrets and variables, Actions). Remove the secret to turn them off again.
 

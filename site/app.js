@@ -17,7 +17,6 @@ let note = "";
 let loading = false;
 let current = TODAY;
 
-document.getElementById("date").textContent = new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
 function store(key, value) {
   try { localStorage.setItem(key, value); } catch { /* storage may be blocked */ }
@@ -26,8 +25,10 @@ function recall(key) {
   try { return localStorage.getItem(key); } catch { return null; }
 }
 
+// The status line stays empty (and takes no space) while live stories are showing normally; it only
+// speaks up for saved or sample stories, or a failed refresh.
 function showStatus() {
-  statusEl.textContent = statusText(mode, data.generatedAt, note);
+  statusEl.textContent = mode === "live" && !note ? "" : statusText(mode, data.generatedAt, note);
 }
 
 function render() {
