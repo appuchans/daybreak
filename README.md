@@ -49,7 +49,7 @@ To turn on the AI features, create a free Gemini API key in Google AI Studio and
 
 ## Choose your own sources
 
-Open `scripts/feeds.json`. Each section lists its feeds as a name and an RSS or Atom link. Add, remove or swap feeds there, commit, and the site rebuilds. Give every section at least two feeds so one outage doesn't empty it.
+Open `scripts/feeds.json`. Each section lists its feeds as a name and an RSS or Atom link. Add, remove or swap feeds there, commit, and the site rebuilds. Give every section at least two feeds so one outage doesn't empty it. If every feed in a section fails at once, that section keeps showing its last published stories while the others update.
 
 ## Good to know
 

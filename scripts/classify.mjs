@@ -47,14 +47,15 @@ export function parseClassification(text, count) {
   return out;
 }
 
-// Adds `scope`, `importance`, `topic`, `focus` and `clickbait` to items in place. `cache` is a Map<canonicalUrl, {scope,
-// importance, clickbait}> from earlier runs, so each story is classified once; it is updated with this
-// run's answers. An entry from an older rubric version (`v`) is asked again.
-export async function classifyItems(items, { guidance, call, cache, delayMs = 4000, log = console.log, sleep = (ms) => new Promise((r) => setTimeout(r, ms)) }) {
+// Adds `scope`, `importance`, `topic`, `focus` and `clickbait` to items in place. `cache` is a Map<key(item), {scope,
+// importance, ...}> from earlier runs, so each story is classified once; it is updated with this run's answers.
+// An entry from an older rubric version (`v`) is asked again. The build keys by section and URL, because each
+// section rates stories against its own guidance: a story Health rates 1 may be a 5 for World.
+export async function classifyItems(items, { guidance, call, cache, key = (it) => canonicalUrl(it.url), delayMs = 4000, log = console.log, sleep = (ms) => new Promise((r) => setTimeout(r, ms)) }) {
   const stats = { cached: 0, classified: 0, unclassified: 0, halted: null };
   const todo = [];
   for (const it of items) {
-    const hit = cache.get(canonicalUrl(it.url));
+    const hit = cache.get(key(it));
     if (hit?.v === CACHE_VERSION) { it.scope = hit.scope; it.importance = hit.importance; it.topic = hit.topic; it.focus = hit.focus; it.clickbait = hit.clickbait; stats.cached++; } else todo.push(it);
   }
   for (let start = 0; start < todo.length; start += BATCH) {
@@ -71,7 +72,7 @@ export async function classifyItems(items, { guidance, call, cache, delayMs = 40
         it.topic = r.topic;
         it.focus = r.focus;
         it.clickbait = r.clickbait;
-        cache.set(canonicalUrl(it.url), { ...r, v: CACHE_VERSION });
+        cache.set(key(it), { ...r, v: CACHE_VERSION });
         stats.classified++;
       });
     } catch (err) {

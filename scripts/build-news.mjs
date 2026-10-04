@@ -23,7 +23,8 @@ async function fetchFeed(feed) {
   return items;
 }
 
-// Classification answers from earlier runs (url -> {scope, importance}), so each story is classified once.
+// Classification answers from earlier runs ("section|url" -> {scope, importance, ...}), so each story is
+// classified once per section.
 const classifyCache = new Map(Object.entries(
   await readFile(process.env.PREVIOUS_CLASSIFY ?? "previous-classify-cache.json", "utf8").then(JSON.parse).catch(() => ({})),
 ));
@@ -56,7 +57,9 @@ for (const section of [...config.sections].reverse()) {
   const failedNames = new Set(results.filter((r) => !r.ok).map((r) => r.feed.name));
   const liveNames = new Set(results.filter((r) => r.ok).map((r) => r.feed.name));
   const carried = (previous?.sections?.[section.id]?.items ?? []).filter((i) => failedNames.has(i.source) && !liveNames.has(i.source));
-  items = items.concat(carried);
+  // Stories a later tab already shows are removed before anything else, so they neither use up a source's
+  // candidate slots below nor cost classification calls.
+  items = items.concat(carried).filter((i) => !storyKeys(i).some((k) => placed.has(k)));
   const live = results.filter((r) => r.ok).length;
   if (live < 2) console.log(`::warning::${section.id} has only ${live} live source(s)`);
   // With a key, Gemini rates every story (scope, importance, clickbait). Only sections with a `classify`
@@ -66,8 +69,9 @@ for (const section of [...config.sections].reverse()) {
     const feedsPerName = new Map();
     for (const f of section.feeds) feedsPerName.set(f.name, (feedsPerName.get(f.name) ?? 0) + 1);
     items = trimPool(items, (name) => config.perSource * 2 * Math.min(feedsPerName.get(name) ?? 1, 4));
-    const stats = await classifyItems(items, { guidance: section.classify?.guidance ?? `These items were collected for the ${section.label} section of a news app. Rate scope and importance for a general reader of that section.`, call: geminiClassifier(geminiOptions), cache: classifyCache, delayMs: aiDelayMs });
-    for (const i of items) usedInRun.add(canonicalUrl(i.url));
+    const key = (it) => `${section.id}|${canonicalUrl(it.url)}`;
+    const stats = await classifyItems(items, { key, guidance: section.classify?.guidance ?? `These items were collected for the ${section.label} section of a news app. Rate scope and importance for a general reader of that section.`, call: geminiClassifier(geminiOptions), cache: classifyCache, delayMs: aiDelayMs });
+    for (const i of items) usedInRun.add(key(i));
     // Group headlines that report the same event, among the stories likely to be shown (the provisional top
     // 2 x perSection), so one event takes one card. Not cached: the groups depend on what else is in the pool.
     if (!stats.halted) {
@@ -78,12 +82,18 @@ for (const section of [...config.sections].reverse()) {
     }
     console.log(`AI classification ${section.id}: cached=${stats.cached} classified=${stats.classified} unclassified=${stats.unclassified}${stats.halted ? ` halted="${stats.halted}"` : ""}`);
   }
-  const built = buildSection(items, { ...config, exclude: placed, classify: section.classify ?? { minImportance: 2 } });
-  for (const item of built) storyKeys(item).forEach((k) => placed.add(k));
+  let built = buildSection(items, { ...config, exclude: placed, classify: section.classify ?? { minImportance: 2 } });
+  // An empty section (every feed down, or everything filtered out) keeps its previously published stories
+  // rather than holding back every other section's update. With no earlier copy, the build fails.
   if (built.length === 0) {
-    console.log(`::error::${section.id} has no items; refusing to publish an empty section`);
-    failedSections++;
+    built = (previous?.sections?.[section.id]?.items ?? []).filter((i) => !storyKeys(i).some((k) => placed.has(k)));
+    if (built.length > 0) console.log(`::warning::${section.id} has no new items; keeping its ${built.length} previously published stories`);
+    else {
+      console.log(`::error::${section.id} has no items and no earlier copy; refusing to publish an empty section`);
+      failedSections++;
+    }
   }
+  for (const item of built) storyKeys(item).forEach((k) => placed.add(k));
   sections[section.id] = { label: section.label, items: built };
 }
 

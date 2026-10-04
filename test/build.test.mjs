@@ -57,6 +57,23 @@ test("refuses to publish when a section ends up empty", async () => {
   });
 });
 
+test("an empty section keeps its previously published stories instead of blocking the whole update", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "daybreak-"));
+  await withServer({ "/a": feed("A", 2) }, async (base) => {
+    const config = { perSource: 4, perSection: 12, sections: [
+      { id: "world", label: "World", feeds: [{ name: "Alive", url: `${base}/a` }] },
+      { id: "sports", label: "Sports", feeds: [{ name: "Dead", url: `${base}/dead` }] },
+    ] };
+    // The dead feed's earlier items are too old to carry over (maxAgeHours), so the section would be empty.
+    const previous = { sections: { sports: { items: [{ title: "Earlier sports story", snippet: "", url: "https://s.example/1", source: "Other", publishedAt: 1, alsoReportedBy: [] }] } } };
+    const r = await build(dir, { ...config, maxAgeHours: 72 }, previous);
+    assert.equal(r.code, 0);
+    assert.deepEqual(r.news.sections.sports.items.map((i) => i.title), ["Earlier sports story"]);
+    assert.equal(r.news.sections.world.items.length, 2);
+    assert.ok(r.out.includes("sports has no new items"));
+  });
+});
+
 test("a story carried by two sections is kept only in the later tab, and the earlier tab backfills", async () => {
   const dir = await mkdtemp(join(tmpdir(), "daybreak-"));
   const item = (t, n) => `<item><title>${t}</title><link>https://x.example/${n}</link><pubDate>Sat, 03 Oct 2026 0${n}:00:00 GMT</pubDate></item>`;
@@ -143,7 +160,7 @@ test("AI classification drops a local story from a classified section and caches
       assert.ok(r.out.includes("AI classification india: cached=0 classified=2 unclassified=1"));
       assert.deepEqual(seenPrompts, ["application/json", "application/json"], "one classification request, then one grouping request");
       const cache = JSON.parse(await readFile(join(dir, "classify-cache.json"), "utf8"));
-      assert.deepEqual(cache["x.example/6"], { scope: "local", importance: 2, topic: "other", focus: "world", clickbait: false, v: 8 });
+      assert.deepEqual(cache["india|x.example/6"], { scope: "local", importance: 2, topic: "other", focus: "world", clickbait: false, v: 8 });
       assert.ok(!JSON.stringify(r.news).includes("TOPSECRET") && !JSON.stringify(cache).includes("TOPSECRET"));
     });
   } finally { gemini.close(); }
@@ -197,4 +214,67 @@ test("AI grouping: differently worded reports of one event become one card with 
       assert.ok(r.out.includes("AI grouping us: groups=1 grouped=2"));
     });
   } finally { gemini.close(); }
+});
+
+// Fake Gemini: classification answers come from `rate(headline, guidance)`; grouping finds nothing.
+async function withGemini(rate, fn) {
+  const server = createServer((req, res) => {
+    let body = "";
+    req.on("data", (c) => (body += c));
+    req.on("end", () => {
+      const parsed = JSON.parse(body);
+      const user = parsed.contents[0].parts[0].text;
+      const [guidance, list] = user.split("\n\nItems:\n");
+      const grouping = parsed.system_instruction.parts[0].text.includes("same specific event");
+      const text = grouping ? "[]" : JSON.stringify(JSON.parse(list).map((i) => ({ id: i.id, scope: "national", importance: rate(i.headline, guidance), topic: "other", focus: "world", clickbait: false })));
+      res.setHeader("content-type", "application/json");
+      res.end(JSON.stringify({ candidates: [{ content: { parts: [{ text }] } }] }));
+    });
+  });
+  await new Promise((r) => server.listen(0, "127.0.0.1", r));
+  try { await fn({ GEMINI_API_KEY: "K", GEMINI_BASE_URL: `http://127.0.0.1:${server.address().port}`, SUMMARY_DELAY_MS: "0" }); } finally { server.close(); }
+}
+
+test("each section rates a shared story against its own guidance (the cache is per section)", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "daybreak-"));
+  const item = (t, n) => `<item><title>${t}</title><link>https://x.example/${n}</link><pubDate>Sat, 03 Oct 2026 0${n}:00:00 GMT</pubDate></item>`;
+  const xml = (...items) => `<rss version="2.0"><channel>${items.join("")}</channel></rss>`;
+  // Health (built first) rates the ceasefire story 1, irrelevant to health; World must still rate it itself.
+  const rate = (headline, guidance) => (guidance === "HEALTH" && /ceasefire/i.test(headline) ? 1 : 5);
+  await withGemini(rate, (env) => withServer({
+    "/w": xml(item("Ceasefire agreed after talks in Geneva", 5), item("World other story", 4)),
+    "/h": xml(item("Ceasefire agreed after talks in Geneva", 5), item("New vaccine approved for children", 3)),
+  }, async (base) => {
+    const config = { perSource: 4, perSection: 12, sections: [
+      { id: "world", label: "World", classify: { minImportance: 2, guidance: "WORLD" }, feeds: [{ name: "W", url: `${base}/w` }] },
+      { id: "health", label: "Health", classify: { minImportance: 2, guidance: "HEALTH" }, feeds: [{ name: "H", url: `${base}/h` }] },
+    ] };
+    const r = await build(dir, config, null, env);
+    assert.equal(r.code, 0);
+    assert.deepEqual(r.news.sections.health.items.map((i) => i.title), ["New vaccine approved for children"]);
+    assert.ok(r.news.sections.world.items.map((i) => i.title).includes("Ceasefire agreed after talks in Geneva"));
+    const cache = JSON.parse(await readFile(join(dir, "classify-cache.json"), "utf8"));
+    assert.equal(cache["health|x.example/5"].importance, 1);
+    assert.equal(cache["world|x.example/5"].importance, 5);
+  }));
+});
+
+test("stories a later tab already shows do not use up an earlier tab's candidate slots", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "daybreak-"));
+  const item = (t, n) => `<item><title>${t}</title><link>https://x.example/${n}</link><pubDate>Sat, 03 Oct 2026 0${n}:00:00 GMT</pubDate></item>`;
+  const xml = (...items) => `<rss version="2.0"><channel>${items.join("")}</channel></rss>`;
+  await withGemini(() => 4, (env) => withServer({
+    // W's two newest stories are shown in India; with perSource 1 its candidate pool is its newest 2 stories.
+    "/w": xml(item("Shared story one about the floods", 8), item("Shared story two about the election", 7), item("World only story", 3)),
+    "/i1": xml(item("Shared story one about the floods", 8)),
+    "/i2": xml(item("Shared story two about the election", 7)),
+  }, async (base) => {
+    const config = { perSource: 1, perSection: 12, sections: [
+      { id: "world", label: "World", feeds: [{ name: "W", url: `${base}/w` }] },
+      { id: "india", label: "India", feeds: [{ name: "I1", url: `${base}/i1` }, { name: "I2", url: `${base}/i2` }] },
+    ] };
+    const r = await build(dir, config, null, env);
+    assert.equal(r.code, 0);
+    assert.deepEqual(r.news.sections.world.items.map((i) => i.title), ["World only story"]);
+  }));
 });

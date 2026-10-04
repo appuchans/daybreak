@@ -1,7 +1,7 @@
 {
   "name": "Daybreak News",
   "short_name": "Daybreak",
-  "description": "Top news: World, US, Tech, India.",
+  "description": "Top news: World, US, India, Tech, Business, Health and Sports.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
