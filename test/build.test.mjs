@@ -278,3 +278,28 @@ test("stories a later tab already shows do not use up an earlier tab's candidate
     assert.deepEqual(r.news.sections.world.items.map((i) => i.title), ["World only story"]);
   }));
 });
+
+test("freshness: stories older than the section's maxAgeHours are left out, unless the section would be short", async () => {
+  const rfc = (hoursAgo) => new Date(Date.now() - hoursAgo * 3_600_000).toUTCString();
+  const xml = (prefix, ages) => `<rss version="2.0"><channel>${ages.map((h, i) =>
+    `<item><title>${prefix} story ${i} about something</title><link>https://x.example/${prefix}/${i}</link><pubDate>${rfc(h)}</pubDate></item>`).join("")}</channel></rss>`;
+  await withServer({
+    // Plenty fresh: nine stories under 24 h, plus a 30-hour-old one.
+    "/full": xml("full", [1, 2, 3, 4, 5, 6, 7, 8, 9, 30]),
+    // Short: three fresh, two between 24 and 48 h, one older than 48 h.
+    "/short": xml("short", [1, 2, 3, 30, 40, 60]),
+  }, async (base) => {
+    const config = { perSource: 12, perSection: 12, maxAgeHours: 24, sections: [
+      { id: "world", label: "World", feeds: [{ name: "A", url: `${base}/full` }] },
+      { id: "tech", label: "Tech", maxAgeHours: 24, feeds: [{ name: "B", url: `${base}/short` }] },
+    ] };
+    const r = await build(await mkdtemp(join(tmpdir(), "daybreak-")), config, null);
+    assert.equal(r.code, 0);
+    const world = r.news.sections.world.items.map((i) => i.title);
+    assert.equal(world.length, 9);
+    assert.ok(!world.includes("full story 9 about something"), "the 30-hour-old story is left out when there are enough fresh ones");
+    const tech = r.news.sections.tech.items.map((i) => i.title);
+    assert.deepEqual(tech, ["short story 0 about something", "short story 1 about something", "short story 2 about something", "short story 3 about something", "short story 4 about something"], "fresh first, then up to twice the age; never older");
+    assert.ok(r.out.includes("tech: 3 stories within 24 h; 2 older ones fill the rest"));
+  });
+});

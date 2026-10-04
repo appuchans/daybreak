@@ -2,7 +2,7 @@
   "perSource": 4,
   "perSection": 12,
   "perStory": 2,
-  "maxAgeHours": 72,
+  "maxAgeHours": 24,
   "sections": [
     {
       "id": "world",
@@ -175,6 +175,7 @@
     {
       "id": "tech",
       "label": "Tech",
+      "maxAgeHours": 48,
       "feeds": [
         {
           "name": "Ars Technica",
@@ -273,6 +274,7 @@
     {
       "id": "health",
       "label": "Health",
+      "maxAgeHours": 48,
       "feeds": [
         {
           "name": "BBC News",

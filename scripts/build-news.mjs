@@ -33,6 +33,7 @@ const geminiOptions = { apiKey: process.env.GEMINI_API_KEY, model: process.env.G
 const aiDelayMs = process.env.SUMMARY_DELAY_MS ? Number(process.env.SUMMARY_DELAY_MS) : 0;
 const usedInRun = new Set();
 
+const MIN_FILL = 8;
 const status = [];
 const sections = {};
 let failedSections = 0;
@@ -54,6 +55,11 @@ for (const section of [...config.sections].reverse()) {
       }
     }),
   );
+  // Freshness: stories older than the section's maxAgeHours (default the global one) are left out, unless
+  // the section would be short (under MIN_FILL cards); then older stories, up to twice that age, fill the
+  // remaining places below the fresh ones.
+  const maxAgeHours = section.maxAgeHours ?? config.maxAgeHours;
+  const sectionOptions = { ...config, maxAgeHours, classify: section.classify ?? { minImportance: 2 } };
   let items = results.flatMap((r) => r.items);
   const failedNames = new Set(results.filter((r) => !r.ok).map((r) => r.feed.name));
   const liveNames = new Set(results.filter((r) => r.ok).map((r) => r.feed.name));
@@ -76,14 +82,20 @@ for (const section of [...config.sections].reverse()) {
     // Group headlines that report the same event, among the stories likely to be shown (the provisional top
     // 2 x perSection), so one event takes one card. Not cached: the groups depend on what else is in the pool.
     if (!stats.halted) {
-      const provisional = new Set(buildSection(items, { ...config, perSection: config.perSection * 2, exclude: placed, classify: section.classify ?? { minImportance: 2 } }).map((i) => i.url));
+      const provisional = new Set(buildSection(items, { ...sectionOptions, maxAgeHours: maxAgeHours && maxAgeHours * 2, perSection: config.perSection * 2, exclude: placed }).map((i) => i.url));
       if (aiDelayMs > 0) await new Promise((r) => setTimeout(r, aiDelayMs));
       const g = await groupEvents(items.filter((i) => provisional.has(i.url)), { call: geminiGrouper(geminiOptions) });
       console.log(`AI grouping ${section.id}: groups=${g.groups} grouped=${g.grouped} stories=${g.stories}${g.halted ? ` halted="${g.halted}"` : ""}`);
     }
     console.log(`AI classification ${section.id}: cached=${stats.cached} classified=${stats.classified} unclassified=${stats.unclassified}${stats.halted ? ` halted="${stats.halted}"` : ""}`);
   }
-  let built = buildSection(items, { ...config, exclude: placed, classify: section.classify ?? { minImportance: 2 } });
+  let built = buildSection(items, { ...sectionOptions, exclude: placed });
+  if (maxAgeHours && built.length < MIN_FILL) {
+    const shown = new Set([...placed, ...built.flatMap(storyKeys)]);
+    const older = buildSection(items, { ...sectionOptions, maxAgeHours: maxAgeHours * 2, exclude: shown, perSection: config.perSection - built.length });
+    if (older.length) console.log(`${section.id}: ${built.length} stories within ${maxAgeHours} h; ${older.length} older ones fill the rest`);
+    built = built.concat(older);
+  }
   // An empty section (every feed down, or everything filtered out) keeps its previously published stories
   // rather than holding back every other section's update. With no earlier copy, the build fails.
   if (built.length === 0) {

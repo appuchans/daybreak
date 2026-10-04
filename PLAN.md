@@ -15,7 +15,7 @@ test/      node:test suites for scripts/ and site/lib.js
 
 ## Built
 - Phase 1, live data: 6 sections, 5 to 10 feeds each; per-feed failure keeps that source's previous items; a section with no items blocks the deploy.
-- Ranking: stories carried by several sources first, then each source's newest before any source's second; items older than 72 h dropped; a story appears in one section only (later tab wins).
+- Ranking: stories carried by several sources first, then each source's newest before any source's second; items older than 24 h dropped (48 h for Tech and Health), with older ones only filling a short section; a story appears in one section only (later tab wins).
 - India-based outlets feed the India section only, via India-specific feeds (enforced by a test).
 - Entities that feeds escape twice are decoded; RSS 2.0, RSS 1.0/RDF (Deutsche Welle) and Atom are parsed.
 - Phase 2, PWA: manifest, icons, network-first service worker, offline fallback to the last saved news.
