@@ -104,7 +104,7 @@ feed.addEventListener("click", (e) => {
 // Image load errors do not bubble, so listen in the capture phase and fall back to a text-only card.
 feed.addEventListener("error", (e) => {
   if (e.target.tagName !== "IMG") return;
-  e.target.closest(".story")?.classList.remove("has-img");
+  e.target.closest(".story, .fp-list a")?.classList.remove("has-img");
   e.target.remove();
 }, true);
 

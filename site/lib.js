@@ -104,16 +104,30 @@ export const TODAY = "today";
 export const TODAY_LABEL = "News Today";
 const PER_SECTION = 3;
 
-// The page follows the tab order: the lead is the first section's top story (World's, normally), and the
-// sections follow in tab order. A score across sections put a Sports story above the world news.
+// The lead is the day's biggest story among the hard-news sections' top stories, by the build's own
+// weighting (AI importance, 3 when unrated, plus up to 2 for other outlets); ties go to the earlier tab.
+// Soft sections never lead (a Sports story once topped the page), and taking the strongest of three
+// sections, not always World's, keeps the page from opening exactly like the World tab.
+export const LEAD_SECTIONS = ["world", "us", "india"];
+const weight = (s) => (Number.isInteger(s.importance) ? s.importance : 3) + Math.min(2, s.alsoReportedBy?.length ?? 0);
+
 export function pickLead(order, sections) {
+  let best = null;
+  for (const id of order.filter((s) => LEAD_SECTIONS.includes(s))) {
+    const top = sections[id]?.items?.[0];
+    if (top && (!best || weight(top) > weight(best.item))) best = { id, item: top };
+  }
+  if (best) return best;
   const id = order.find((s) => sections[s]?.items?.length);
   return id ? { id, item: sections[id].items[0] } : null;
 }
 
-function headlineHtml(s, now) {
+// One headline in a section's digest: title, outlet and age; the first one also gets a small picture.
+function headlineHtml(s, now, withImage) {
   const age = Number.isFinite(s.publishedAt) ? ` · ${esc(ago(s.publishedAt, now))}` : "";
-  return `<li><a href="${esc(safeHref(s.url))}" target="_blank" rel="noopener noreferrer"><span class="fp-title">${esc(s.title)}</span><span class="fp-src">${esc(s.source)}${age}</span></a></li>`;
+  const image = withImage ? safeImage(s.image) : null;
+  const img = image ? `<img class="fp-thumb" src="${esc(image)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">` : "";
+  return `<li><a class="${img ? "has-img" : ""}" href="${esc(safeHref(s.url))}" target="_blank" rel="noopener noreferrer"><span class="fp-txt"><span class="fp-title">${esc(s.title)}</span><span class="fp-src">${esc(s.source)}${age}</span></span>${img}</a></li>`;
 }
 
 export function frontPageHtml(order, sections, now = Date.now()) {
@@ -124,9 +138,8 @@ export function frontPageHtml(order, sections, now = Date.now()) {
     .map((id) => {
       const items = sections[id].items.filter((s) => s !== lead.item).slice(0, PER_SECTION);
       if (!items.length) return "";
-      const [first, ...rest] = items;
-      const more = rest.length ? `<ul class="fp-list">${rest.map((s) => headlineHtml(s, now)).join("")}</ul>` : "";
-      return `<section class="fp-section"><button class="fp-head" type="button" data-c="${esc(id)}"><span>${esc(sections[id].label)}</span><span class="fp-more">More ›</span></button>${storyHtml(first, false, now)}${more}</section>`;
+      const list = items.map((s, i) => headlineHtml(s, now, i === 0)).join("");
+      return `<section class="fp-section"><button class="fp-head" type="button" data-c="${esc(id)}"><span>${esc(sections[id].label)}</span><span class="fp-more">More ›</span></button><ul class="fp-list">${list}</ul></section>`;
     })
     .join("");
   return `<div class="fp-lead">${storyHtml(lead.item, true, now)}</div><div class="fp-grid">${blocks}</div>`;

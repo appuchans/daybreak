@@ -96,22 +96,24 @@ test("cards show how long ago the story was published", () => {
   assert.equal(ago(now - 45 * 60_000, now), "45 min ago");
 });
 
-test("News Today follows the tab order: the lead is the first section's top story and is not repeated", () => {
+test("News Today: the lead is the biggest World/US/India top story, never a soft section's, and is not repeated", () => {
   const s = (title, extra = {}) => ({ title, url: `https://a.example/${encodeURIComponent(title)}`, source: "S", alsoReportedBy: [], ...extra });
   const sections = {
-    world: { label: "World", items: [s("W1", { importance: 4 }), s("W2"), s("W3"), s("W4")] },
+    world: { label: "World", items: [s("W1", { importance: 4 }), s("W2", { image: "https://i.example/w2.jpg" }), s("W3"), s("W4"), s("W5")] },
     us: { label: "US", items: [s("U1", { importance: 4, alsoReportedBy: ["A", "B"] }), s("U2")] },
     tech: { label: "Tech", items: [] },
+    sports: { label: "Sports", items: [s("S1", { importance: 5, alsoReportedBy: ["A", "B"] })] },
   };
-  // U1 scores higher (more outlets), but World comes first in the tabs.
-  assert.equal(pickLead(["world", "us", "tech"], sections).item.title, "W1");
-  assert.equal(pickLead(["tech", "us"], sections).item.title, "U1", "an empty first section is skipped");
-  const html = frontPageHtml(["world", "us", "tech"], sections);
-  assert.equal(html.split(">W1<").length - 1, 1, "lead shown once");
-  assert.ok(html.includes(">W2<") && html.includes(">W4<") && !html.includes(">W5<"), "World shows its next three");
-  assert.ok(html.indexOf('data-c="world"') < html.indexOf('data-c="us"'), "sections in tab order");
-  assert.ok(html.includes(">U1<") && html.includes(">U2<"));
+  const order = ["world", "us", "tech", "sports"];
+  assert.equal(pickLead(order, sections).item.title, "U1", "more outlets beats World's top story");
+  assert.equal(pickLead(["world", "us"], { world: sections.world, us: { label: "US", items: [s("U1", { importance: 4 })] } }).item.title, "W1", "ties go to the earlier tab");
+  assert.equal(pickLead(["sports"], { sports: sections.sports }).item.title, "S1", "a soft section leads only when nothing else exists");
+  const html = frontPageHtml(order, sections);
+  assert.equal(html.split(">U1<").length - 1, 1, "lead shown once");
+  assert.ok(html.includes(">W1<") && html.includes(">W3<") && !html.includes(">W4<"), "World digest: its top three");
+  assert.ok(html.indexOf('data-c="world"') < html.indexOf('data-c="us"') && html.indexOf('data-c="us"') < html.indexOf('data-c="sports"'), "sections in tab order");
   assert.ok(!html.includes('data-c="tech"'), "empty sections are left out");
+  assert.ok(!html.includes("w2.jpg"), "only a section's first headline gets a picture");
   assert.equal(frontPageHtml([], {}), '<p class="empty">No stories right now.</p>');
 });
 
