@@ -1,8 +1,11 @@
-// Offline shell. The app's own files (page, script, styles, fonts, icons) come from the cache first, so the
-// page appears at once even on a weak connection, and are refreshed in the background: a new version shows
-// on the next open. news.json goes to the network first and falls back to the last cached copy, so the
-// stories are as fresh as the connection allows. Cross-origin requests (publisher images) are untouched.
-const CACHE = "daybreak-v2";
+// Offline shell. Every same-origin GET (page, scripts, styles, fonts, news.json) goes to the network first,
+// revalidating with the server (cache: "no-cache") so a fresh deploy shows on the very next open rather than
+// after the browser's own 10-minute cache expires. If the network has not answered within NETWORK_WAIT_MS
+// and a cached copy exists, the cached copy is shown and the network answer still updates the cache; offline,
+// the cached copy is used. Cross-origin requests (publisher images) are untouched.
+// (Cache-first was tried on 2026-10-04: pages opened at once, but changes took two or more opens to appear.)
+const CACHE = "daybreak-v3";
+const NETWORK_WAIT_MS = 2500;
 const SHELL = ["./", "index.html", "app.css", "app.js", "lib.js", "fallback.js", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "fonts/fraunces-latin.woff2", "fonts/public-sans-latin.woff2"];
 
 self.addEventListener("install", (e) => {
@@ -15,30 +18,20 @@ self.addEventListener("activate", (e) => {
   );
 });
 
-function fromNetwork(req) {
-  return fetch(req).then((res) => {
+self.addEventListener("fetch", (e) => {
+  const req = e.request;
+  if (req.method !== "GET" || new URL(req.url).origin !== self.location.origin) return;
+  const network = fetch(req, { cache: "no-cache" }).then((res) => {
     if (res.ok) {
       const copy = res.clone();
       caches.open(CACHE).then((c) => c.put(req, copy));
     }
     return res;
   });
-}
-
-self.addEventListener("fetch", (e) => {
-  const req = e.request;
-  const url = new URL(req.url);
-  if (req.method !== "GET" || url.origin !== self.location.origin) return;
-  if (url.pathname.endsWith("/news.json")) {
-    e.respondWith(fromNetwork(req).catch(() => caches.match(req, { ignoreSearch: true })));
-    return;
-  }
+  e.waitUntil(network.catch(() => {}));
+  const cached = () => caches.match(req, { ignoreSearch: true });
+  const slow = new Promise((resolve) => setTimeout(resolve, NETWORK_WAIT_MS)).then(cached);
   e.respondWith(
-    caches.match(req, { ignoreSearch: true }).then((cached) => {
-      const network = fromNetwork(req);
-      if (!cached) return network;
-      e.waitUntil(network.catch(() => {}));
-      return cached;
-    }),
+    Promise.race([network, slow.then((c) => c ?? network)]).catch(() => cached().then((c) => c ?? Response.error())),
   );
 });

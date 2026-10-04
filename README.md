@@ -10,7 +10,7 @@ Top news on your phone, in seven sections: World, US, India, Tech, Business, Hea
 - The latest headlines from several publishers in each section, with a short summary, how long ago it was published, and a picture where the publisher provides one. Tapping a story opens it on the publisher's own site.
 - A refresh button, and the page refreshes itself when you come back to it after a while.
 - Dark and light themes that follow your phone's setting.
-- Opens instantly and works offline with the last stories it loaded. After an app update, the new version appears the next time you open it.
+- Works offline with the last stories it loaded, and on a slow connection shows them after a couple of seconds instead of waiting.
 - New stories every hour, at half past. When the stories are more than 30 minutes old, a notice at the top says how old they are and when the next update is due, with a button to check for newer ones.
 - Optional AI help: a relevance check for the India section and plain "What it's about" lines for clickbait headlines (see below).
 

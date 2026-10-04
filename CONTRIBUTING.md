@@ -10,7 +10,7 @@ Status and roadmap are in `PLAN.md`.
 
 ## Offline shell and fonts
 
-`site/sw.js` serves the app's own files cache-first and refreshes them in the background (a deploy shows on the next open), and `news.json` network-first with the cached copy as fallback. Bump `CACHE` when the precached file list changes. The two fonts are bundled as variable woff2 files (latin and latin-ext subsets, downloaded from Google Fonts 2026-10-04) so the page makes no third-party request and keeps its fonts offline; only the latin files are precached.
+`site/sw.js` serves every same-origin file network-first, revalidating with the server (`cache: "no-cache"`, so GitHub Pages' 10-minute `max-age` does not delay a deploy), and falls back to the cached copy offline or when the network takes longer than `NETWORK_WAIT_MS` (2.5 s). Cache-first was tried on 2026-10-04 and dropped: changes took two or more opens to appear. Bump `CACHE` when the precached file list changes. The two fonts are bundled as variable woff2 files (latin and latin-ext subsets, downloaded from Google Fonts 2026-10-04) so the page makes no third-party request and keeps its fonts offline; only the latin files are precached.
 
 ## Rebuild schedule
 
