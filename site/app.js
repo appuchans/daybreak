@@ -38,9 +38,13 @@ function showStatus() {
 
 function render() {
   const order = data.order ?? Object.keys(data.sections);
-  if (!data.sections[current]) current = order[0];
-  tabs.innerHTML = tabsHtml(order, data.sections, current);
-  feed.innerHTML = feedHtml(data.sections[current].items);
+  // Fall back to the first tab for display only, so a saved tab the sample or an older copy lacks (Sports)
+  // is still selected once the live stories arrive.
+  const shown = data.sections[current] ? current : order[0];
+  tabs.innerHTML = tabsHtml(order, data.sections, shown);
+  feed.innerHTML = feedHtml(data.sections[shown].items);
+  // Seven tabs overflow a phone screen: keep the selected one in view (Sports sits off-screen on the right).
+  tabs.querySelector('[aria-pressed="true"]')?.scrollIntoView({ block: "nearest", inline: "nearest" });
   showStatus();
 }
 

@@ -4,6 +4,10 @@ Status and roadmap are in `PLAN.md`.
 
 **Rule: every change that users or forkers can notice also updates `README.md` in the same commit** (sections, sources, ranking, refresh and update behaviour, setup). Developer detail goes here, not in the README.
 
+## Offline shell and fonts
+
+`site/sw.js` serves the app's own files cache-first and refreshes them in the background (a deploy shows on the next open), and `news.json` network-first with the cached copy as fallback. Bump `CACHE` when the precached file list changes. The two fonts are bundled as variable woff2 files (latin and latin-ext subsets, downloaded from Google Fonts 2026-10-04) so the page makes no third-party request and keeps its fonts offline; only the latin files are precached.
+
 ## Rebuild schedule
 
 GitHub's `schedule` trigger has never fired for this repository, so `news.yml` chains itself: after a deploy, the `next` job waits until the next half hour (UTC) and dispatches the workflow again with the built-in token (`workflow_dispatch` is one of the two events that token may trigger). `always()` keeps the chain alive through a failed build. Every push starts a chain too; the `next-run` concurrency group (cancel-in-progress) cancels the older waiting job, so one chain survives. Builds share a `build` concurrency group with cancel-in-progress, so a newer build (a push) replaces an older one still running: overlapping builds doubled the Gemini calls and once let the older build deploy last. The deploy lock (`pages` group) sits on the deploy job, not the workflow, so the waiting job doesn't block pushes. The cron line (same times) is kept as a backup. Hourly because each build makes about 10 Gemini calls (seven grouping requests plus new classifications and summaries): about 240 of the 500 a day, leaving room for pushes and re-ratings. Every 30 minutes would come to about 480 and leave none; a 27-minute loop once made 500 to 650. A build's worst case is about 20 (new summaries are capped at 10 per run, `SUMMARY_MAX_PER_RUN`). Pushes still build immediately. The page's stale notice (`staleText` in `site/lib.js`) uses `UPDATE_TIMES_UTC`, so change it together with the workflow's times. To restart a broken chain, push or run the workflow by hand.
@@ -12,7 +16,7 @@ GitHub's `schedule` trigger has never fired for this repository, so `news.yml` c
 
 ```
 site/       index.html, app.css, app.js (DOM), lib.js (pure rendering helpers), fallback.js,
-            sw.js (service worker), manifest.webmanifest, icons/
+            sw.js (service worker), manifest.webmanifest, icons/, fonts/ (Fraunces and Public Sans, SIL OFL, from Google Fonts)
 scripts/    feeds.json (sources), news.mjs (parse, dedupe, rank), build-news.mjs (writes news.json),
             check-feeds.mjs + candidates.json (vet new sources)
 test/       node:test suites for scripts/ and site/lib.js

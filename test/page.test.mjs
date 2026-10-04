@@ -87,3 +87,11 @@ test("staleText: silent under 30 minutes, then says how old the stories are and 
   assert.equal(minutesToNextUpdate(Date.parse("2026-10-04T23:50:00Z")), 40);
   assert.equal(minutesToNextUpdate(Date.parse("2026-10-04T00:10:00Z")), 20);
 });
+
+test("cards show how long ago the story was published", () => {
+  const now = Date.parse("2026-10-04T12:00:00Z");
+  const html = storyHtml({ title: "T", url: "https://a.example/1", source: "BBC", publishedAt: now - 2 * 3_600_000 }, false, now);
+  assert.ok(html.includes('<div class="meta">BBC<span class="age"> · 2 h ago</span></div>'));
+  assert.ok(!storyHtml({ title: "T", url: "https://a.example/1", source: "BBC" }).includes("class=\"age\""), "no age without a date");
+  assert.equal(ago(now - 45 * 60_000, now), "45 min ago");
+});

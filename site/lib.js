@@ -14,8 +14,9 @@ export function heroImage(url) {
   return url.replace(/^(https:\/\/ichef\.bbci\.co\.uk\/ace\/standard\/)\d+\//, "$1976/");
 }
 
+// iso: an ISO date string or epoch milliseconds (stories carry publishedAt as a number).
 export function ago(iso, now = Date.now()) {
-  const t = Date.parse(iso);
+  const t = typeof iso === "number" ? iso : Date.parse(iso);
   if (!Number.isFinite(t)) return "recently";
   const minutes = Math.max(0, Math.round((now - t) / 60000));
   if (minutes < 2) return "just now";
@@ -24,18 +25,19 @@ export function ago(iso, now = Date.now()) {
   return hours < 48 ? `${hours} h ago` : `${Math.round(hours / 24)} days ago`;
 }
 
-export function storyHtml(s, lead = false) {
+export function storyHtml(s, lead = false, now = Date.now()) {
   const image = safeImage(s.image);
   const img = image
     ? `<img class="thumb" src="${esc(lead ? heroImage(image) : image)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">`
     : "";
+  const age = Number.isFinite(s.publishedAt) ? `<span class="age"> · ${esc(ago(s.publishedAt, now))}</span>` : "";
   const also = s.alsoReportedBy?.length ? `<div class="also">Also reported by ${esc(s.alsoReportedBy.join(", "))}</div>` : "";
   const snippet = typeof s.aiSummary === "string" && s.aiSummary
     ? `<p><span class="ai-tag">What it's about</span> ${esc(s.aiSummary)}</p>`
     : s.snippet ? `<p>${esc(s.snippet)}</p>` : "";
   return (
     `<a class="story${lead ? " lead" : ""}${img ? " has-img" : ""}" href="${esc(safeHref(s.url))}" target="_blank" rel="noopener noreferrer">` +
-    `${img}<div class="txt"><div class="meta">${esc(s.source)}</div><h2>${esc(s.title)}</h2>${snippet}${also}</div></a>`
+    `${img}<div class="txt"><div class="meta">${esc(s.source)}${age}</div><h2>${esc(s.title)}</h2>${snippet}${also}</div></a>`
   );
 }
 
@@ -45,8 +47,8 @@ export function tabsHtml(order, sections, current) {
     .join("");
 }
 
-export function feedHtml(items) {
-  return items?.length ? items.map((s, i) => storyHtml(s, i === 0)).join("") : '<p class="empty">No stories in this section right now.</p>';
+export function feedHtml(items, now = Date.now()) {
+  return items?.length ? items.map((s, i) => storyHtml(s, i === 0, now)).join("") : '<p class="empty">No stories in this section right now.</p>';
 }
 
 // The site is rebuilt every hour at half past (UTC), which keeps the AI features within the free daily
