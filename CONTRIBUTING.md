@@ -72,6 +72,7 @@ cp news.json site/ && cd site && python3 -m http.server 8000
 
 `scripts/group.mjs`. Word-overlap matching cannot tell that "Medical transport airplane missing off Massachusetts" and "Coast Guard searching off Nantucket for missing Boston-bound jet" are one event. After classification, each section's provisional top 2 x `perSection` stories go to Gemini in one request; it returns groups of ids that report the same specific event (not the same broad topic: two strikes in one war are two events). Grouped items get a shared `eventId`, which `buildSection` treats like an exact duplicate: one card, every outlet credited in `alsoReportedBy`, and the corroboration bonus applies.
 
+- The same request also returns `stories`: items about one ongoing story (an election, a war), even different events of it. They get a shared `storyId`, and `buildSection` shows at most `perStory` (2, in `feeds.json`) cards per story, applied with the per-source cap after ranking. Added after Brazil's election day put five near-identical cards in World's top twelve.
 - One extra request per section per run, not cached (a group depends on what else is in the pool). Skipped if classification halted.
 - Fail-open: errors are a `::warning::`, nothing is grouped, and the deterministic matching still applies. `eventId` never reaches `news.json`.
 

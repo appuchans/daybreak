@@ -79,7 +79,7 @@ for (const section of [...config.sections].reverse()) {
       const provisional = new Set(buildSection(items, { ...config, perSection: config.perSection * 2, exclude: placed, classify: section.classify ?? { minImportance: 2 } }).map((i) => i.url));
       if (aiDelayMs > 0) await new Promise((r) => setTimeout(r, aiDelayMs));
       const g = await groupEvents(items.filter((i) => provisional.has(i.url)), { call: geminiGrouper(geminiOptions) });
-      console.log(`AI grouping ${section.id}: groups=${g.groups} grouped=${g.grouped}${g.halted ? ` halted="${g.halted}"` : ""}`);
+      console.log(`AI grouping ${section.id}: groups=${g.groups} grouped=${g.grouped} stories=${g.stories}${g.halted ? ` halted="${g.halted}"` : ""}`);
     }
     console.log(`AI classification ${section.id}: cached=${stats.cached} classified=${stats.classified} unclassified=${stats.unclassified}${stats.halted ? ` halted="${stats.halted}"` : ""}`);
   }

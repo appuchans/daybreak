@@ -189,7 +189,7 @@ export function storyKeys(item) {
 // Ranking: AI importance plus a bonus for stories several outlets carry, then each source's newest story before
 // any source's second story and so on (so a fast feed cannot crowd the others out of the top
 // perSection), then newest first.
-export function buildSection(items, { perSource = 4, perSection = 12, exclude = new Set(), maxAgeHours, now = Date.now(), classify } = {}) {
+export function buildSection(items, { perSource = 4, perSection = 12, perStory = 2, exclude = new Set(), maxAgeHours, now = Date.now(), classify } = {}) {
   // AI classification (optional): drop stories judged to be of the wrong scope or too minor for this
   // section. Unclassified stories (no key, quota, bad output) are kept.
   const wanted = (it) =>
@@ -213,12 +213,13 @@ export function buildSection(items, { perSource = 4, perSection = 12, exclude = 
     const hit = taken.get(key) ?? taken.get(urlKey) ?? entries.find((e) => sameStory(e.tokens, tokens) || (it.eventId && e.item.eventId === it.eventId));
     if (hit) {
       hit.sources.add(it.source);
+      hit.storyId ??= it.storyId;
       if (!hit.item.image && it.image) hit.item = { ...hit.item, image: it.image };
       taken.set(key, hit);
       taken.set(urlKey, hit);
       continue;
     }
-    const entry = { item: it, sources: new Set([it.source]), tokens };
+    const entry = { item: it, sources: new Set([it.source]), tokens, storyId: it.storyId };
     entries.push(entry);
     taken.set(key, entry);
     taken.set(urlKey, entry);
@@ -238,8 +239,15 @@ export function buildSection(items, { perSource = 4, perSection = 12, exclude = 
   const ordered = entries.sort((a, b) => score(b) - score(a) || a.sourceRank - b.sourceRank || b.item.publishedAt - a.item.publishedAt);
   const picked = [];
   const used = new Map();
-  const room = (e) => (used.get(e.item.source) ?? 0) < perSource;
-  const take = (e) => { used.set(e.item.source, (used.get(e.item.source) ?? 0) + 1); picked.push(e); };
+  // Caps: `perSource` cards per outlet, and `perStory` cards per ongoing story (the AI's `storyId`), so one
+  // big story (an election day) cannot fill the section.
+  const story = new Map();
+  const room = (e) => (used.get(e.item.source) ?? 0) < perSource && (!e.storyId || (story.get(e.storyId) ?? 0) < perStory);
+  const take = (e) => {
+    used.set(e.item.source, (used.get(e.item.source) ?? 0) + 1);
+    if (e.storyId) story.set(e.storyId, (story.get(e.storyId) ?? 0) + 1);
+    picked.push(e);
+  };
   for (const e of ordered) {
     if (picked.length >= perSection) break;
     if (room(e)) take(e);
@@ -255,12 +263,13 @@ export function buildSection(items, { perSource = 4, perSection = 12, exclude = 
       if (!victim) break;
       picked.splice(picked.indexOf(victim), 1);
       used.set(victim.item.source, used.get(victim.item.source) - 1);
+      if (victim.storyId) story.set(victim.storyId, story.get(victim.storyId) - 1);
       take(e);
     }
     picked.sort((a, b) => ordered.indexOf(a) - ordered.indexOf(b));
   }
   return picked.map(({ item, sources }) => {
-    const { eventId, ...rest } = item; // internal grouping label, not part of the output
+    const { eventId, storyId, ...rest } = item; // internal grouping labels, not part of the output
     return { ...rest, alsoReportedBy: [...sources].filter((s) => s !== item.source) };
   });
 }

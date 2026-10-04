@@ -1,6 +1,7 @@
 {
   "perSource": 4,
   "perSection": 12,
+  "perStory": 2,
   "maxAgeHours": 72,
   "sections": [
     {
