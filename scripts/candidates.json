@@ -1,122 +1,102 @@
 [
  {
-  "section": "health",
-  "name": "Fierce Pharma",
-  "url": "https://www.fiercepharma.com/rss/xml"
+  "section": "sports",
+  "name": "BBC Cricket",
+  "url": "https://feeds.bbci.co.uk/sport/cricket/rss.xml"
  },
  {
-  "section": "health",
-  "name": "Fierce Biotech",
-  "url": "https://www.fiercebiotech.com/rss/xml"
+  "section": "sports",
+  "name": "BBC Football",
+  "url": "https://feeds.bbci.co.uk/sport/football/rss.xml"
  },
  {
-  "section": "health",
-  "name": "BioPharma Dive",
-  "url": "https://www.biopharmadive.com/feeds/news/"
+  "section": "sports",
+  "name": "Guardian Cricket",
+  "url": "https://www.theguardian.com/sport/cricket/rss"
  },
  {
-  "section": "health",
-  "name": "Endpoints News",
-  "url": "https://endpts.com/feed/"
+  "section": "sports",
+  "name": "Guardian Football",
+  "url": "https://www.theguardian.com/football/rss"
  },
  {
-  "section": "health",
-  "name": "MedicalXpress",
-  "url": "https://medicalxpress.com/rss-feed/"
+  "section": "sports",
+  "name": "ESPNcricinfo",
+  "url": "https://www.espncricinfo.com/rss/content/story/feeds/0.xml"
  },
  {
-  "section": "health",
-  "name": "MedicalXpress breaking",
-  "url": "https://medicalxpress.com/rss-feed/breaking/"
+  "section": "sports",
+  "name": "ESPN Soccer",
+  "url": "https://www.espn.com/espn/rss/soccer/news"
  },
  {
-  "section": "health",
-  "name": "EurekAlert",
-  "url": "https://www.eurekalert.org/rss.xml"
+  "section": "sports",
+  "name": "Sky Sports Football",
+  "url": "https://www.skysports.com/rss/12040"
  },
  {
-  "section": "health",
-  "name": "Nature",
-  "url": "https://www.nature.com/nature.rss"
+  "section": "sports",
+  "name": "Sky Sports Cricket",
+  "url": "https://www.skysports.com/rss/12026"
  },
  {
-  "section": "health",
-  "name": "Nature Medicine",
-  "url": "https://www.nature.com/nm.rss"
+  "section": "sports",
+  "name": "CBS Sports Soccer",
+  "url": "https://www.cbssports.com/rss/headlines/soccer/"
  },
  {
-  "section": "health",
-  "name": "Science news",
-  "url": "https://www.science.org/rss/news_current.xml"
+  "section": "sports",
+  "name": "Times of India Cricket",
+  "url": "https://timesofindia.indiatimes.com/rssfeeds/4719161.cms"
  },
  {
-  "section": "health",
-  "name": "NIH news releases",
-  "url": "https://www.nih.gov/news-events/news-releases/feed.xml"
+  "section": "sports",
+  "name": "The Hindu Cricket",
+  "url": "https://www.thehindu.com/sport/cricket/feeder/default.rss"
  },
  {
-  "section": "health",
-  "name": "FDA press releases",
-  "url": "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/press-releases/rss.xml"
+  "section": "sports",
+  "name": "The Hindu Football",
+  "url": "https://www.thehindu.com/sport/football/feeder/default.rss"
  },
  {
-  "section": "health",
-  "name": "FDA drug approvals",
-  "url": "https://www.fda.gov/drugs/news-events-human-drugs/rss.xml"
+  "section": "sports",
+  "name": "Hindustan Times Cricket",
+  "url": "https://www.hindustantimes.com/feeds/rss/cricket/rssfeed.xml"
  },
  {
-  "section": "health",
-  "name": "News-Medical",
-  "url": "https://www.news-medical.net/syndication.axd?format=rss"
+  "section": "sports",
+  "name": "NDTV Sports",
+  "url": "https://feeds.feedburner.com/ndtvsports-cricket"
  },
  {
-  "section": "health",
-  "name": "MedPage Today",
-  "url": "https://www.medpagetoday.com/rss/headlines.xml"
+  "section": "sports",
+  "name": "Indian Express Cricket",
+  "url": "https://indianexpress.com/section/sports/cricket/feed/"
  },
  {
-  "section": "health",
-  "name": "GEN",
-  "url": "https://www.genengnews.com/feed/"
+  "section": "sports",
+  "name": "Al Jazeera Sport",
+  "url": "https://www.aljazeera.com/xml/rss/all.xml"
  },
  {
-  "section": "health",
-  "name": "Lancet",
-  "url": "https://www.thelancet.com/rssfeed/lancet_current.xml"
+  "section": "sports",
+  "name": "Fox Sports Soccer",
+  "url": "https://api.foxsports.com/v2/content/optimized-rss?partnerKey=MB0Wehpmuj2lUhuRhQaafhBjAJqaPU244mlTDK1i&size=30&tags=fs/soccer"
  },
  {
-  "section": "health",
-  "name": "NEJM",
-  "url": "https://www.nejm.org/action/showFeed?jc=nejm&type=etoc&feed=rss"
+  "section": "sports",
+  "name": "talkSPORT",
+  "url": "https://talksport.com/feed/"
  },
  {
-  "section": "health",
-  "name": "STAT",
-  "url": "https://www.statnews.com/feed/"
+  "section": "sports",
+  "name": "Goal",
+  "url": "https://www.goal.com/feeds/en/news"
  },
  {
-  "section": "health",
-  "name": "ScienceDaily Health",
-  "url": "https://www.sciencedaily.com/rss/health_medicine.xml"
- },
- {
-  "section": "health",
-  "name": "ScienceDaily Pharma",
-  "url": "https://www.sciencedaily.com/rss/health_medicine/pharmacology.xml"
- },
- {
-  "section": "health",
-  "name": "The Guardian Science",
-  "url": "https://www.theguardian.com/science/rss"
- },
- {
-  "section": "health",
-  "name": "BBC Science",
-  "url": "https://feeds.bbci.co.uk/news/science_and_environment/rss.xml"
- },
- {
-  "section": "health",
-  "name": "NPR Health",
-  "url": "https://feeds.npr.org/1128/rss.xml"
+  "section": "sports",
+  "name": "Cricbuzz",
+  "url": "https://www.cricbuzz.com/cricket-news/rss"
  }
 ]
