@@ -32,6 +32,7 @@ async function errorInfo(res, apiKey) {
   }
 }
 
+const MAX_RETRY_WAIT_MS = 90_000;
 const envNumber = (name, fallback) => (process.env[name] !== undefined && process.env[name] !== "" ? Number(process.env[name]) : fallback);
 
 export async function generate({
@@ -56,8 +57,10 @@ export async function generate({
       return (body?.candidates?.[0]?.content?.parts ?? []).map((p) => p.text ?? "").join("");
     }
     const { detail, retryMs } = await errorInfo(res, apiKey);
-    // 429 is usually the per-minute limit: wait and try again. If it persists (the daily quota), stop.
-    if (res.status === 429 && attempt < retries) {
+    // 429 is usually the per-minute limit: wait and try again. A suggested wait over MAX_RETRY_WAIT_MS
+    // means the daily quota is spent (Google once asked for 30,347 s, which held a build for an hour
+    // until it was cancelled), so stop instead; so does a 429 that persists.
+    if (res.status === 429 && attempt < retries && (retryMs ?? 0) <= MAX_RETRY_WAIT_MS) {
       const wait = Math.max(retryMs ?? 0, retryDelayMs);
       console.log(`::notice::Gemini rate limit (HTTP 429); retrying in ${Math.round(wait / 1000)} s`);
       await sleep(wait);

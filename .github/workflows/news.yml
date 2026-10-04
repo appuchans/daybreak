@@ -15,6 +15,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     # One build at a time, and a newer one replaces an older one still running: two overlapping builds
     # doubled the Gemini calls and let the older one deploy last (2026-10-04).
     concurrency:

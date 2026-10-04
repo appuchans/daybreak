@@ -75,6 +75,16 @@ test("generate: a 429 is retried after Google's suggested delay; three in a row 
   });
 });
 
+test("generate: a 429 asking for a long wait (the daily quota) halts at once instead of waiting", async () => {
+  const daily = (req, res) => { res.statusCode = 429; res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ error: { status: "RESOURCE_EXHAUSTED", details: [{ "@type": "type.googleapis.com/google.rpc.RetryInfo", retryDelay: "30347s" }] } })); };
+  await withGemini(daily, async (baseUrl, seen) => {
+    const started = Date.now();
+    await assert.rejects(geminiCaller({ apiKey: "k", baseUrl, minIntervalMs: 0, retryDelayMs: 0 })(item(1)), HaltSummaries);
+    assert.equal(seen.length, 1, "no retry");
+    assert.ok(Date.now() - started < 2000);
+  });
+});
+
 test("generate: calls are spaced at least minIntervalMs apart, even when made at once", async () => {
   await withGemini(reply("ok"), async (baseUrl) => {
     const call = geminiCaller({ apiKey: "k", baseUrl, minIntervalMs: 60 });
