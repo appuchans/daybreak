@@ -2,7 +2,6 @@ import { ago, feedHtml, frontPageHtml, minutesToNextUpdate, nextUpdateText, stal
 import { FALLBACK } from "./fallback.js";
 
 const KEY_DATA = "dn-news";
-const KEY_TAB = "dn-tab";
 const STALE_AFTER_MS = 15 * 60000;
 const MIN_SPIN_MS = 700; // a fast response should still visibly acknowledge the tap
 
@@ -87,7 +86,6 @@ async function load(manual) {
 
 function openTab(id) {
   current = id;
-  store(KEY_TAB, current);
   render();
   window.scrollTo(0, 0);
 }
@@ -119,7 +117,7 @@ document.addEventListener("visibilitychange", () => {
 });
 setInterval(showStatus, 60000);
 
-current = recall(KEY_TAB) || TODAY;
+// The app always opens on News Today; the chosen tab is not remembered between visits.
 try {
   const saved = JSON.parse(recall(KEY_DATA));
   if (saved?.sections) { data = saved; mode = "saved"; }

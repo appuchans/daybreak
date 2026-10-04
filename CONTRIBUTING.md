@@ -6,7 +6,7 @@ Status and roadmap are in `PLAN.md`.
 
 ## News Today (front page)
 
-`frontPageHtml` in `site/lib.js`, drawn from the published sections with no build or AI step. The lead is the strongest section top story by the build's own weighting (importance, 3 when unrated, plus up to 2 for other outlets), ties to the earlier tab; each section then shows its top three, skipping the lead. It is the first tab (`TODAY`) and the default view. Added 2026-10-04 as one commit so it can be reverted if the newspaper style doesn't work out.
+`frontPageHtml` in `site/lib.js`, drawn from the published sections with no build or AI step. The lead is the strongest section top story by the build's own weighting (importance, 3 when unrated, plus up to 2 for other outlets), ties to the earlier tab; each section then shows its top three, skipping the lead. It is the first tab (`TODAY`), and the app always opens on it (the chosen tab is not remembered). Added 2026-10-04 as one commit so it can be reverted if the newspaper style doesn't work out.
 
 ## Offline shell and fonts
 
