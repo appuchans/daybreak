@@ -73,17 +73,17 @@ test("a what-it-is-about line replaces the snippet, is labelled, and is escaped"
   assert.ok(storyHtml({ title: "T", snippet: "Feed snippet.", url: "https://a.example/1", source: "S" }).includes("Feed snippet."));
 });
 
-test("staleText: silent under 30 minutes, then says how old the stories are and when the next update (00:30 or 12:30 UTC) is due", () => {
-  const now = Date.parse("2026-10-04T15:00:00Z");
+test("staleText: silent under 30 minutes, then says how old the stories are and when the next hourly update (at half past) is due", () => {
+  const now = Date.parse("2026-10-04T15:10:00Z");
   const at = (iso) => `2026-10-04T${iso}:00Z`;
-  assert.equal(staleText(at("14:45"), now), "");
-  assert.equal(staleText(at("12:33"), now), "These stories are from 2 h ago. Next update in about 9 h 30 min.");
+  assert.equal(staleText(at("14:50"), now), "");
+  assert.equal(staleText(at("14:33"), now), "These stories are from 37 min ago. Next update in about 20 min.");
   assert.equal(staleText("not a date", now), "");
-  // Just before the evening update; then the 12:30 build is missing an hour later.
-  assert.equal(staleText(at("00:33"), Date.parse("2026-10-04T12:27:00Z")), "These stories are from 12 h ago. Newer stories are due shortly.");
-  assert.equal(staleText(at("00:33"), Date.parse("2026-10-04T13:30:00Z")), "These stories are from 13 h ago. The latest update is running late.");
+  assert.equal(staleText(at("14:33"), Date.parse("2026-10-04T15:27:00Z")), "These stories are from 54 min ago. Newer stories are due shortly.");
+  // The 15:30 build is missing half an hour later.
+  assert.equal(staleText(at("14:33"), Date.parse("2026-10-04T16:05:00Z")), "These stories are from 2 h ago. The latest update is running late.");
   // An off-schedule build after the last update time is not late.
-  assert.equal(staleText(at("13:00"), Date.parse("2026-10-04T14:00:00Z")), "These stories are from 1 h ago. Next update in about 10 h 30 min.");
+  assert.equal(staleText(at("15:40"), Date.parse("2026-10-04T16:15:00Z")), "These stories are from 35 min ago. Next update in about 15 min.");
   assert.equal(minutesToNextUpdate(Date.parse("2026-10-04T23:50:00Z")), 40);
   assert.equal(minutesToNextUpdate(Date.parse("2026-10-04T00:10:00Z")), 20);
 });

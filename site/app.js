@@ -45,7 +45,7 @@ function render() {
 }
 
 // manual: show progress and say what happened. The page can only fetch the latest published
-// build (rebuilt twice a day); it cannot trigger a rebuild.
+// build (rebuilt every hour); it cannot trigger a rebuild.
 async function load(manual) {
   if (loading) return;
   loading = true;

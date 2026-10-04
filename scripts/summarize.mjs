@@ -42,7 +42,7 @@ export const eligible = (item) => item.clickbait === true && item.snippet.length
 // Adds `aiSummary` to items in place, for clickbait-flagged items only (the classifier decides). Summaries from the previously published news.json are reused
 // by canonical URL, so each story is summarized once. New ones are limited to `maxNew` per run and
 // taken lead-story-first across sections, because the free tier's limits are not known up front.
-export async function summarizeSections(sections, { call, previous, maxNew = 30, delayMs = 4000, log = console.log, sleep = (ms) => new Promise((r) => setTimeout(r, ms)) }) {
+export async function summarizeSections(sections, { call, previous, maxNew = 10, delayMs = 4000, log = console.log, sleep = (ms) => new Promise((r) => setTimeout(r, ms)) }) {
   const earlier = new Map();
   for (const section of Object.values(previous?.sections ?? {})) {
     for (const item of section.items ?? []) if (typeof item.aiSummary === "string") earlier.set(canonicalUrl(item.url), item.aiSummary);

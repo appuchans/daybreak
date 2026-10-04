@@ -49,10 +49,10 @@ export function feedHtml(items) {
   return items?.length ? items.map((s, i) => storyHtml(s, i === 0)).join("") : '<p class="empty">No stories in this section right now.</p>';
 }
 
-// The site is rebuilt twice a day, at 00:30 and 12:30 UTC (6 am and 6 pm India time), to stay within the
-// free AI quota. Keep UPDATE_TIMES_UTC in step with the schedule in .github/workflows/news.yml.
+// The site is rebuilt every hour at half past (UTC), which keeps the AI features within the free daily
+// quota. Keep UPDATE_TIMES_UTC in step with the schedule in .github/workflows/news.yml.
 // Past STALE_AFTER_MIN the page says how old the stories are and when newer ones are expected.
-export const UPDATE_TIMES_UTC = [30, 12 * 60 + 30]; // minutes after midnight UTC
+export const UPDATE_TIMES_UTC = Array.from({ length: 24 }, (_, h) => h * 60 + 30); // minutes after midnight UTC
 export const STALE_AFTER_MIN = 30;
 const BUILD_MIN = 10; // a build is published within about this long after its start time
 

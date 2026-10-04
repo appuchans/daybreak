@@ -10,7 +10,7 @@ Top news on your phone, in seven sections: World, US, India, Tech, Business, Hea
 - A refresh button, and the page refreshes itself when you come back to it after a while.
 - Dark and light themes that follow your phone's setting.
 - Works offline with the last stories it loaded.
-- New stories twice a day, at about 6 am and 6 pm India time (8:30 am and 8:30 pm US Eastern in summer, an hour earlier in winter). When the stories are more than 30 minutes old, a notice at the top says how old they are and when the next update is due, with a button to check for newer ones.
+- New stories every hour, at half past. When the stories are more than 30 minutes old, a notice at the top says how old they are and when the next update is due, with a button to check for newer ones.
 - Optional AI help: a relevance check for the India section and plain "What it's about" lines for clickbait headlines (see below).
 
 ## AI features (optional)
@@ -43,7 +43,7 @@ Daybreak has no server, so your own copy is a fork plus GitHub Pages:
 3. Open Settings, then Pages, and set the source to **GitHub Actions**.
 4. In the Actions tab, run "Build and deploy" once. Your site appears at `https://<your-user>.github.io/<repo-name>/` when it finishes.
 
-After that it updates itself twice a day, at 00:30 and 12:30 UTC: each run waits for the next update time, then starts it, because GitHub's own scheduler is unreliable on new repositories. To change the times, edit the times in the `next` job of `.github/workflows/news.yml` and `UPDATE_TIMES_UTC` in `site/lib.js` together. If a source stops working, the run log names it. If the page says the latest update is running late, the chain has stopped: run "Build and deploy" from the Actions tab, or push any commit, to restart it.
+After that it updates itself every hour at half past: each run waits for the next update time, then starts it, because GitHub's own scheduler is unreliable on new repositories. To change the schedule, edit the `next` job in `.github/workflows/news.yml` and `UPDATE_TIMES_UTC` in `site/lib.js` together. If a source stops working, the run log names it. If the page says the latest update is running late, the chain has stopped: run "Build and deploy" from the Actions tab, or push any commit, to restart it.
 
 To turn on the AI features, create a free Gemini API key in Google AI Studio and add it to your fork as a repository secret named `GEMINI_API_KEY` (Settings, Secrets and variables, Actions). Remove the secret to turn them off again.
 

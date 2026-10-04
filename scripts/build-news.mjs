@@ -109,7 +109,7 @@ if (failedSections > 0) process.exit(1);
 // Optional AI summaries: off unless GEMINI_API_KEY is set (a repository secret in the workflow).
 if (process.env.GEMINI_API_KEY) {
   const call = geminiCaller({ apiKey: process.env.GEMINI_API_KEY, model: process.env.GEMINI_MODEL || undefined, baseUrl: process.env.GEMINI_BASE_URL || undefined });
-  const stats = await summarizeSections(sections, { call, previous, maxNew: Number(process.env.SUMMARY_MAX_PER_RUN) || 30, delayMs: aiDelayMs });
+  const stats = await summarizeSections(sections, { call, previous, maxNew: Number(process.env.SUMMARY_MAX_PER_RUN) || 10, delayMs: aiDelayMs });
   console.log(`AI summaries: reused=${stats.reused} added=${stats.added} skipped=${stats.skipped} failed=${stats.failed}${stats.halted ? ` halted="${stats.halted}"` : ""}`);
 } else {
   console.log("AI summaries: off (GEMINI_API_KEY not set)");
