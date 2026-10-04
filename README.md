@@ -30,7 +30,7 @@ Only public headlines and descriptions are sent to Gemini. On Google's free tier
 
 ## How stories are chosen
 
-Each section combines feeds from five to nine news outlets. In the US and India sections, government and policy, politics, defense and security, and major incidents come first. In Health, at least five of the twelve cards are research breakthroughs or pharma and drug developments. Hard news ranks above features, opinion and advice columns, and a story several outlets cover moves up (with an AI key, the model rates how much each story matters; without one, only the number of outlets counts). Within the same standing, each outlet's newest story comes first, so no single outlet fills a section. Anything older than three days is dropped, roundups and briefings that bundle several stories are skipped, and a story shows up in one section only. Indian outlets appear in the India section only, and World leaves out stories that are mainly about US or Indian domestic affairs, even when a foreign outlet reported them.
+Each section combines feeds from several news outlets. In the US and India sections, government and policy, politics, defense and security, and major incidents come first. In Health, at least five of the twelve cards are research breakthroughs or pharma and drug developments. Sports covers cricket and football (soccer) only: match results, tournaments, big transfers and injuries rank above live blogs, opinion, fantasy tips and transfer rumours, and general sports feeds are narrowed to those two sports by article address. Hard news ranks above features, opinion and advice columns, and a story several outlets cover moves up (with an AI key, the model rates how much each story matters; without one, only the number of outlets counts). Within the same standing, each outlet's newest story comes first, so no single outlet fills a section. Anything older than three days is dropped, roundups and briefings that bundle several stories are skipped, and a story shows up in one section only. Indian outlets appear in the India section only (Sports also uses their cricket and football feeds), and World leaves out stories that are mainly about US or Indian domestic affairs, even when a foreign outlet reported them.
 
 When a publisher's feed leaves out the description, Daybreak reads the one-line preview description from the article page itself. Daybreak keeps just the headline, a one-line summary, the link, the outlet's name and a picture link. The stories belong to their publishers.
 
@@ -43,7 +43,7 @@ Daybreak has no server, so your own copy is a fork plus GitHub Pages:
 3. Open Settings, then Pages, and set the source to **GitHub Actions**.
 4. In the Actions tab, run "Build and deploy" once. Your site appears at `https://<your-user>.github.io/<repo-name>/` when it finishes.
 
-After that it updates itself about every 30 minutes. If a source stops working, the run log names it.
+After that it updates itself about every 30 minutes: each build waits, then starts the next one, because GitHub's own scheduler is unreliable on new repositories. If a source stops working, the run log names it.
 
 To turn on the AI features, create a free Gemini API key in Google AI Studio and add it to your fork as a repository secret named `GEMINI_API_KEY` (Settings, Secrets and variables, Actions). Remove the secret to turn them off again.
 
@@ -53,6 +53,6 @@ Open `scripts/feeds.json`. Each section lists its feeds as a name and an RSS or 
 
 ## Good to know
 
-- GitHub can delay scheduled updates, so the news may be up to an hour behind.
+- The refresh button loads the newest published build; it can't start a rebuild. If it says there are no newer stories, the next build isn't due yet.
+- If the news is more than an hour old, the update chain has stopped: run "Build and deploy" from the Actions tab, or push any commit, to restart it.
 - Pictures load from the publishers' own servers, and a few publishers block that. Those stories show without a picture.
-- GitHub pauses scheduled updates on a public repository after 60 days without any activity. Any commit restarts them.

@@ -2,6 +2,12 @@
 
 Status and roadmap are in `PLAN.md`.
 
+**Rule: every change that users or forkers can notice also updates `README.md` in the same commit** (sections, sources, ranking, refresh and update behaviour, setup). Developer detail goes here, not in the README.
+
+## Rebuild schedule
+
+GitHub's `schedule` trigger has never fired for this repository, so `news.yml` chains itself: after a deploy, the `next` job sleeps 25 minutes and dispatches the workflow again with the built-in token (`workflow_dispatch` is one of the two events that token may trigger). `always()` keeps the chain alive through a failed build. Every push starts a chain too; the `next-run` concurrency group (cancel-in-progress) cancels the older waiting job, so one chain survives. The deploy lock (`pages` group) sits on the deploy job, not the workflow, so the waiting job doesn't block pushes. The cron line is kept as a backup. To restart a broken chain, push or run the workflow by hand.
+
 ## Layout
 
 ```
@@ -89,3 +95,7 @@ Health is meant to cover research and pharma as well as health news. Sources: BB
 
 - Indian outlets' feeds are filtered by URL section only, so a regional or foreign story filed under a national section still gets through; there is no classifier. Mint was dropped because its company and economy feeds are mostly global news.
 - A publisher image that fails to load makes its card reflow once.
+
+## Sports sources
+
+Sports is cricket and football only. Vetted 2026-10-04: ESPNcricinfo (no images), BBC Cricket and Football, Guardian Cricket and Football, The Hindu Cricket and Football, Hindustan Times Cricket, NDTV Sports (cricket), CBS Sports Soccer and talkSPORT (football path only). Dead, blocked or stale: ESPN soccer, Sky Sports (both), Goal, Cricbuzz, Indian Express (403), Times of India cricket (stale since 2016), Fox Sports soccer (stale). Multi-sport feeds are narrowed with `only` patterns. Indian outlets are allowed in this section only (see the config test). There is no cricket/football minimum yet; if one sport crowds out the other, add topics for them to the classifier and a `reserve`.
