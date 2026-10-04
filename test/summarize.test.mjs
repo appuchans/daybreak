@@ -38,7 +38,7 @@ const reply = (text) => (req, res) => { res.setHeader("content-type", "applicati
 
 test("geminiCaller sends the documented request and keeps the key out of the URL", async () => {
   await withGemini(reply("Summary here."), async (baseUrl, seen) => {
-    const out = await geminiCaller({ apiKey: "SECRET", baseUrl })(item(1));
+    const out = await geminiCaller({ apiKey: "SECRET", baseUrl, minIntervalMs: 0 })(item(1));
     assert.equal(out, "Summary here.");
     const [req] = seen;
     assert.equal(req.url, "/v1beta/models/gemini-3.5-flash-lite:generateContent");
@@ -54,11 +54,34 @@ test("geminiCaller sends the documented request and keeps the key out of the URL
 test("geminiCaller: 429 and key errors halt; server errors are ordinary failures", async () => {
   for (const [status, halts] of [[429, true], [403, true], [400, true], [404, true], [500, false]]) {
     await withGemini((req, res) => { res.statusCode = status; res.end("{}"); }, async (baseUrl) => {
-      const p = geminiCaller({ apiKey: "k", baseUrl })(item(1));
+      const p = geminiCaller({ apiKey: "k", baseUrl, minIntervalMs: 0, retryDelayMs: 0 })(item(1));
       if (halts) await assert.rejects(p, HaltSummaries);
       else await assert.rejects(p, (e) => e instanceof Error && !(e instanceof HaltSummaries));
     });
   }
+});
+
+test("generate: a 429 is retried after Google's suggested delay; three in a row halt", async () => {
+  const limited = (req, res) => { res.statusCode = 429; res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ error: { status: "RESOURCE_EXHAUSTED", details: [{ "@type": "type.googleapis.com/google.rpc.RetryInfo", retryDelay: "0.05s" }] } })); };
+  await withGemini((req, res, n) => (n === 1 ? limited(req, res) : reply("After retry.")(req, res)), async (baseUrl, seen) => {
+    const started = Date.now();
+    assert.equal(await geminiCaller({ apiKey: "k", baseUrl, minIntervalMs: 0, retryDelayMs: 0 })(item(1)), "After retry.");
+    assert.equal(seen.length, 2);
+    assert.ok(Date.now() - started >= 45, "waited for RetryInfo's delay");
+  });
+  await withGemini(limited, async (baseUrl, seen) => {
+    await assert.rejects(geminiCaller({ apiKey: "k", baseUrl, minIntervalMs: 0, retryDelayMs: 0 })(item(1)), HaltSummaries);
+    assert.equal(seen.length, 3);
+  });
+});
+
+test("generate: calls are spaced at least minIntervalMs apart, even when made at once", async () => {
+  await withGemini(reply("ok"), async (baseUrl) => {
+    const call = geminiCaller({ apiKey: "k", baseUrl, minIntervalMs: 60 });
+    const started = Date.now();
+    await Promise.all([call(item(1)), call(item(2)), call(item(3))]);
+    assert.ok(Date.now() - started >= 115, `three calls took ${Date.now() - started} ms`);
+  });
 });
 
 test("summarizeSections reuses earlier summaries by canonical URL and only calls for new stories", async () => {

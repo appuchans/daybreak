@@ -29,7 +29,8 @@ const classifyCache = new Map(Object.entries(
   await readFile(process.env.PREVIOUS_CLASSIFY ?? "previous-classify-cache.json", "utf8").then(JSON.parse).catch(() => ({})),
 ));
 const geminiOptions = { apiKey: process.env.GEMINI_API_KEY, model: process.env.GEMINI_MODEL || undefined, baseUrl: process.env.GEMINI_BASE_URL || undefined };
-const aiDelayMs = process.env.SUMMARY_DELAY_MS ? Number(process.env.SUMMARY_DELAY_MS) : 4000;
+// Extra spacing between AI steps; the per-minute limit itself is enforced in gemini.mjs for every call.
+const aiDelayMs = process.env.SUMMARY_DELAY_MS ? Number(process.env.SUMMARY_DELAY_MS) : 0;
 const usedInRun = new Set();
 
 const status = [];
@@ -108,7 +109,7 @@ if (failedSections > 0) process.exit(1);
 // Optional AI summaries: off unless GEMINI_API_KEY is set (a repository secret in the workflow).
 if (process.env.GEMINI_API_KEY) {
   const call = geminiCaller({ apiKey: process.env.GEMINI_API_KEY, model: process.env.GEMINI_MODEL || undefined, baseUrl: process.env.GEMINI_BASE_URL || undefined });
-  const stats = await summarizeSections(sections, { call, previous, maxNew: Number(process.env.SUMMARY_MAX_PER_RUN) || 30, delayMs: process.env.SUMMARY_DELAY_MS ? Number(process.env.SUMMARY_DELAY_MS) : 4000 });
+  const stats = await summarizeSections(sections, { call, previous, maxNew: Number(process.env.SUMMARY_MAX_PER_RUN) || 30, delayMs: aiDelayMs });
   console.log(`AI summaries: reused=${stats.reused} added=${stats.added} skipped=${stats.skipped} failed=${stats.failed}${stats.halted ? ` halted="${stats.halted}"` : ""}`);
 } else {
   console.log("AI summaries: off (GEMINI_API_KEY not set)");

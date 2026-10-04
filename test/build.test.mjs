@@ -25,7 +25,7 @@ async function withServer(routes, fn) {
 async function build(dir, config, previous, extraEnv = {}) {
   const cfg = join(dir, "feeds.json");
   await writeFile(cfg, JSON.stringify(config));
-  const env = { ...process.env, GEMINI_API_KEY: "", DESCRIBE_MAX_PER_RUN: "0", FEEDS_CONFIG: cfg, PREVIOUS_NEWS: join(dir, "previous-news.json"), ...extraEnv };
+  const env = { ...process.env, GEMINI_API_KEY: "", GEMINI_MIN_INTERVAL_MS: "0", GEMINI_RETRY_DELAY_MS: "0", DESCRIBE_MAX_PER_RUN: "0", FEEDS_CONFIG: cfg, PREVIOUS_NEWS: join(dir, "previous-news.json"), ...extraEnv };
   if (previous) await writeFile(env.PREVIOUS_NEWS, JSON.stringify(previous));
   return run("node", [script], { cwd: dir, env }).then(
     async (r) => ({ code: 0, news: JSON.parse(await readFile(join(dir, "news.json"), "utf8")), out: r.stdout }),

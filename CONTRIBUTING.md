@@ -56,6 +56,7 @@ cp news.json site/ && cd site && python3 -m http.server 8000
 - Answers are cached by section and canonical URL (`"world|bbc.com/news/…"`) in `classify-cache.json`, which the workflow publishes next to `news.json` and fetches again on the next run, so each story is classified once per section. The key includes the section because each section rates against its own guidance: a story Health rates 1 can be a 5 for World. The page never reads that file.
 - Stories a later tab already shows are removed from an earlier tab's candidates before the pool is trimmed and classified, so they neither take a source's candidate slots nor cost calls.
 - Fail-open: no key, a quota error or unparseable output leaves stories unclassified, and unclassified stories are kept. The first `HaltGemini` error stops the run's remaining calls.
+- Rate limit: the free tier allows 15 requests a minute. `generate()` in `scripts/gemini.mjs` spaces every Gemini call in the build (classification, grouping, summaries) at least 5 s apart (`GEMINI_MIN_INTERVAL_MS`), and retries a 429 twice, after Google's suggested `RetryInfo` delay or 30 s (`GEMINI_RETRY_DELAY_MS`), before halting. A 429 that persists is the daily quota.
 - Model replies are validated (known scope, integer importance 1 to 5, id in range); headlines are passed to the model as data inside a JSON array.
 - `scripts/gemini.mjs` holds the one REST call used by classification and summaries.
 
@@ -74,7 +75,7 @@ cp news.json site/ && cd site && python3 -m http.server 8000
 - Summaries come from the headline and feed description only, one sentence; descriptions under 40 characters are skipped.
 - Only stories the classifier flagged `clickbait` are summarized, and the line is labelled "What it's about" on the page. The prompt tells the model to say what the story is about using only the headline and description, or to answer `SKIP` when the description does not make that clear. Earlier summaries of non-clickbait stories are not reused.
 - Each story is summarized once: earlier summaries are reused by canonical URL from the previously published `news.json`.
-- Free-tier limits are only visible in the AI Studio account, so each run makes at most `SUMMARY_MAX_PER_RUN` (30) new calls, lead stories first, 4 s apart (`SUMMARY_DELAY_MS`). HTTP 429/400/401/403 stop the run's calls (a warning in the log); three failures in a row do too. The build never fails because of summaries.
+- Free-tier limits are only visible in the AI Studio account, so each run makes at most `SUMMARY_MAX_PER_RUN` (30) new calls, lead stories first, paced by `generate()` (see the rate limit above). A persistent HTTP 429, and 400/401/403/404, stop the run's calls (a warning in the log); three failures in a row do too. The build never fails because of summaries.
 - Roll back: delete the secret (summaries vanish on the next build), or `git revert` the commit that added them.
 - Not verified against the live API from the development sandbox, which has no key; check the "AI summaries: ..." line in the build log after the first run.
 
