@@ -361,6 +361,88 @@
         },
         "guidance": "These items were collected for the Health section of a news app for readers who want health and medical science: research breakthroughs and studies, clinical trials, drug and vaccine development and approvals, pharmaceutical and biotech industry news, outbreaks, and health policy. importance for such a reader: 5 = a major breakthrough, a landmark trial, a notable drug or vaccine approval, or a serious outbreak; 4 = a significant study, drug-development or health-policy story; 3 = notable; 2 = wellness, diet, fitness or lifestyle advice, product reviews and personal stories; 1 = promotional content."
       }
+    },
+    {
+      "id": "sports",
+      "label": "Sports",
+      "classify": {
+        "minImportance": 3,
+        "dropScopes": [],
+        "guidance": "These items were collected for the Sports section of a news app for readers who follow cricket and football (soccer) only. importance for such a reader: 5 = a major result or final, a World Cup, Asia Cup, Ashes, IPL, Champions League or World Cup qualifier outcome, a record-breaking performance, a landmark transfer, a serious injury or suspension of a star player, or a governing-body ruling that changes a competition; 4 = a significant match result or series/league turning point, a squad or lineup announcement for a major fixture, or a notable transfer or managerial change; 3 = a routine fixture report or preview of an important match; 2 = match-day live blogs, opinion and analysis columns, player features, quizzes, fantasy tips, betting odds, ticket or broadcast information, and transfer rumours or gossip; 1 = promotional content. A story about any sport other than cricket or football is importance 1."
+      },
+      "feeds": [
+        {
+          "name": "ESPNcricinfo",
+          "url": "https://www.espncricinfo.com/rss/content/story/feeds/0.xml"
+        },
+        {
+          "name": "BBC Cricket",
+          "url": "https://feeds.bbci.co.uk/sport/cricket/rss.xml",
+          "only": [
+            "^/sport/cricket/"
+          ]
+        },
+        {
+          "name": "Guardian Cricket",
+          "url": "https://www.theguardian.com/sport/cricket/rss",
+          "exclude": [
+            "^/sport/live/"
+          ]
+        },
+        {
+          "name": "The Hindu Cricket",
+          "url": "https://www.thehindu.com/sport/cricket/feeder/default.rss",
+          "only": [
+            "^/sport/"
+          ]
+        },
+        {
+          "name": "Hindustan Times Cricket",
+          "url": "https://www.hindustantimes.com/feeds/rss/cricket/rssfeed.xml"
+        },
+        {
+          "name": "NDTV Sports",
+          "url": "https://feeds.feedburner.com/ndtvsports-cricket",
+          "only": [
+            "^/cricket/"
+          ]
+        },
+        {
+          "name": "BBC Football",
+          "url": "https://feeds.bbci.co.uk/sport/football/rss.xml",
+          "only": [
+            "^/sport/football/"
+          ]
+        },
+        {
+          "name": "Guardian Football",
+          "url": "https://www.theguardian.com/football/rss",
+          "only": [
+            "^/football/"
+          ],
+          "exclude": [
+            "^/football/(live|video|ng-interactive)/"
+          ]
+        },
+        {
+          "name": "CBS Sports Soccer",
+          "url": "https://www.cbssports.com/rss/headlines/soccer/"
+        },
+        {
+          "name": "The Hindu Football",
+          "url": "https://www.thehindu.com/sport/football/feeder/default.rss",
+          "only": [
+            "^/sport/"
+          ]
+        },
+        {
+          "name": "talkSPORT",
+          "url": "https://talksport.com/feed/",
+          "only": [
+            "^/football/"
+          ]
+        }
+      ]
     }
   ]
 }

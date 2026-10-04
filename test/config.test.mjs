@@ -15,12 +15,13 @@ test("feed config: unique section ids, >= 2 https feeds each", () => {
 });
 
 test("section order matches the product order", () => {
-  assert.deepEqual(config.sections.map((s) => s.id), ["world", "us", "india", "tech", "business", "health"]);
+  assert.deepEqual(config.sections.map((s) => s.id), ["world", "us", "india", "tech", "business", "health", "sports"]);
 });
 
-test("India-based outlets feed the India section only", () => {
+// Sports is the one exception: its Indian outlets are cricket and football feeds, not general news.
+test("India-based outlets feed the India and Sports sections only", () => {
   const indian = /thehindu|timesofindia|indiatimes|ndtv|hindustantimes|livemint|economictimes|businessline/;
-  for (const s of config.sections.filter((s) => s.id !== "india")) {
+  for (const s of config.sections.filter((s) => s.id !== "india" && s.id !== "sports")) {
     for (const f of s.feeds) assert.ok(!indian.test(f.url), `${s.id}/${f.name} is an India-based feed`);
   }
 });
@@ -67,4 +68,13 @@ test("Health reserves room for research and pharma stories", () => {
   assert.ok(classify.reserve.count >= 4);
   assert.deepEqual(classify.priorityTopics, ["research", "pharma"]);
   assert.equal(classify.priorityBonus, 0, "the reserve is the guarantee; a bonus on top crowded out public-health news");
+});
+
+test("Sports keeps to cricket and football feeds", () => {
+  const sports = config.sections.find((s) => s.id === "sports");
+  assert.ok(sports.feeds.length >= 8);
+  assert.ok(sports.classify.guidance.includes("cricket") && sports.classify.guidance.includes("football"));
+  for (const f of sports.feeds) for (const p of [...(f.only ?? []), ...(f.exclude ?? [])]) assert.doesNotThrow(() => new RegExp(p), `${f.name}: ${p}`);
+  // General multi-sport feeds must be narrowed to a sport by URL path.
+  assert.deepEqual(sports.feeds.find((f) => f.name === "talkSPORT").only, ["^/football/"]);
 });

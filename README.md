@@ -1,6 +1,6 @@
 # Daybreak
 
-Top news on your phone, in six sections: World, US, India, Tech, Business and Health. It is free to use and free to run: no accounts, no ads, no API keys.
+Top news on your phone, in seven sections: World, US, India, Tech, Business, Health and Sports (cricket and football only). It is free to use and free to run: no accounts, no ads, no API keys.
 
 **Live:** https://mysteriboks.github.io/daybreak/
 
