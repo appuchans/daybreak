@@ -1,7 +1,7 @@
 // Last-resort sample, shown only when news.json cannot be fetched and nothing was saved.
 export const FALLBACK = {
   generatedAt: "2026-10-03T08:00:00Z",
-  order: ["world", "us", "tech", "india", "business", "health"],
+  order: ["world", "us", "india", "tech", "business", "health"],
   sections: {
     world: { label: "World", items: [
       { title: "Iran live updates: Trump says war will be over 'very soon,' but offers no details", snippet: "Latest from the Iran conflict as of Oct 1.", url: "https://abcnews.com/International/live-updates/iran-live-updates-saudi-foreign-minister-arrives-us/?id=136814503", source: "ABC News" },
