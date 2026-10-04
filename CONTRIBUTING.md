@@ -4,7 +4,7 @@ Status and roadmap are in `PLAN.md`.
 
 **Rule: every change that users or forkers can notice also updates `README.md` in the same commit** (sections, sources, ranking, refresh and update behaviour, setup). Developer detail goes here, not in the README.
 
-## News Today (front page)
+## Top News (front page)
 
 `frontPageHtml` in `site/lib.js`, drawn from the published sections with no build or AI step. The lead is the strongest top story of World, US and India (`LEAD_SECTIONS`) by the build's own weighting (importance, 3 when unrated, plus up to 2 for other outlets), ties to the earlier tab. Sections follow in tab order as a headline digest (three headlines, outlet and age, a small picture on the first), skipping the lead. History: a score across all sections put a Sports story on top; always leading with World's top story made the page open exactly like the World tab. It is the first tab (`TODAY`), and the app always opens on it (the chosen tab is not remembered). Added 2026-10-04 as one commit so it can be reverted if the newspaper style doesn't work out.
 

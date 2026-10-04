@@ -99,9 +99,9 @@ export function statusText(mode, generatedAt, note = "", now = Date.now()) {
   return note ? `${base} · ${note}` : base;
 }
 
-// "News Today": a newspaper-style front page built from the sections' own top stories (no extra data).
+// "Top News": a newspaper-style front page built from the sections' own top stories (no extra data).
 export const TODAY = "today";
-export const TODAY_LABEL = "News Today";
+export const TODAY_LABEL = "Top News";
 const PER_SECTION = 3;
 
 // The lead is the day's biggest story among the hard-news sections' top stories, by the build's own

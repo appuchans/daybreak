@@ -96,7 +96,7 @@ test("cards show how long ago the story was published", () => {
   assert.equal(ago(now - 45 * 60_000, now), "45 min ago");
 });
 
-test("News Today: the lead is the biggest World/US/India top story, never a soft section's, and is not repeated", () => {
+test("Top News: the lead is the biggest World/US/India top story, never a soft section's, and is not repeated", () => {
   const s = (title, extra = {}) => ({ title, url: `https://a.example/${encodeURIComponent(title)}`, source: "S", alsoReportedBy: [], ...extra });
   const sections = {
     world: { label: "World", items: [s("W1", { importance: 4 }), s("W2", { image: "https://i.example/w2.jpg" }), s("W3"), s("W4"), s("W5")] },
@@ -117,7 +117,7 @@ test("News Today: the lead is the biggest World/US/India top story, never a soft
   assert.equal(frontPageHtml([], {}), '<p class="empty">No stories right now.</p>');
 });
 
-test("News Today escapes feed text and neutralizes hostile links", () => {
+test("Top News escapes feed text and neutralizes hostile links", () => {
   const evil = { title: "<script>x</script>", url: "javascript:alert(1)", source: "<b>", alsoReportedBy: [] };
   const html = frontPageHtml(["world"], { world: { label: "<i>W</i>", items: [{ ...evil, title: "Lead" }, evil, evil] } });
   assert.ok(!html.includes("<script>") && !html.includes("<b>") && !html.includes("<i>W"));

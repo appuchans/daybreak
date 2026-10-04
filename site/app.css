@@ -49,7 +49,7 @@ main{min-height:70vh;display:flex;flex-direction:column;gap:12px;padding-block:1
 .lead .thumb{display:block;height:auto;aspect-ratio:16/9;margin:-14px -16px 12px;width:calc(100% + 32px);max-width:none;border-radius:0}
 .empty{color:var(--muted);padding-block:24px;text-align:center}
 .note{font-size:13px;color:var(--muted);padding-block:8px}
-/* News Today: a newspaper-style front page. Flat, rule-separated blocks instead of cards. Every headline
+/* Top News: a newspaper-style front page. Flat, rule-separated blocks instead of cards. Every headline
    is the same size (19px, as on the section tabs); the lead stands out by position and picture only. */
 .fp-lead .lead h2{font-size:19px;line-height:1.25}
 [data-view="today"] main{gap:0}

@@ -95,7 +95,7 @@ tabs.addEventListener("click", (e) => {
   if (button) openTab(button.dataset.c);
 });
 
-// News Today: a section's heading opens that section's tab.
+// Top News: a section's heading opens that section's tab.
 feed.addEventListener("click", (e) => {
   const head = e.target.closest(".fp-head");
   if (head) openTab(head.dataset.c);
@@ -117,7 +117,7 @@ document.addEventListener("visibilitychange", () => {
 });
 setInterval(showStatus, 60000);
 
-// The app always opens on News Today; the chosen tab is not remembered between visits.
+// The app always opens on Top News; the chosen tab is not remembered between visits.
 try {
   const saved = JSON.parse(recall(KEY_DATA));
   if (saved?.sections) { data = saved; mode = "saved"; }
