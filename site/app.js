@@ -1,4 +1,4 @@
-import { ago, feedHtml, nextUpdateIn, nextUpdateText, staleText, statusText, tabsHtml } from "./lib.js";
+import { ago, feedHtml, minutesToNextUpdate, nextUpdateText, staleText, statusText, tabsHtml } from "./lib.js";
 import { FALLBACK } from "./fallback.js";
 
 const KEY_DATA = "dn-news";
@@ -45,7 +45,7 @@ function render() {
 }
 
 // manual: show progress and say what happened. The page can only fetch the latest published
-// build (rebuilt about every two hours); it cannot trigger a rebuild.
+// build (rebuilt twice a day); it cannot trigger a rebuild.
 async function load(manual) {
   if (loading) return;
   loading = true;
@@ -62,7 +62,7 @@ async function load(manual) {
     data = json;
     mode = "live";
     if (manual) await new Promise((r) => setTimeout(r, Math.max(0, MIN_SPIN_MS - (Date.now() - started))));
-    const noNewer = `No newer stories yet. ${nextUpdateText(nextUpdateIn(json.generatedAt))}`;
+    const noNewer = `No newer stories yet. ${nextUpdateText(minutesToNextUpdate())}`;
     note = manual && same ? noNewer : "";
     store(KEY_DATA, JSON.stringify(json));
     render();

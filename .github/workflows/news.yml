@@ -2,8 +2,13 @@ name: Build and deploy
 
 on:
   schedule:
-    - cron: "11 */2 * * *"
+    - cron: "30 0,12 * * *"
   workflow_dispatch:
+    inputs:
+      relay:
+        description: Only wait for the next update time (no build)
+        type: boolean
+        default: false
   push:
     branches: [main]
 
@@ -14,6 +19,7 @@ permissions:
 
 jobs:
   build:
+    if: ${{ !inputs.relay }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -53,22 +59,41 @@ jobs:
       - id: deployment
         uses: actions/deploy-pages@v5
 
-  # Every two hours, to stay within the free Gemini quota (a 27-minute loop made ~500 calls a day).
-  # GitHub's cron has never fired for this repository, so each run schedules the next: wait, then
-  # dispatch this workflow again. workflow_dispatch is one of the two events a run may trigger with
-  # the built-in token. `always()` keeps the chain alive after a failed build. Every push starts a
-  # chain too; the concurrency group cancels the older waiting job, so only one chain survives.
+  # Builds run twice a day, at 00:30 and 12:30 UTC (6 am and 6 pm India time), to stay within the free
+  # Gemini quota. GitHub's cron has never fired for this repository, so each run schedules the next: wait
+  # until the next update time, then dispatch this workflow with the built-in token (workflow_dispatch is
+  # one of the two events that token may trigger). A job may run at most 6 hours, so a longer wait is split:
+  # after 5 h 45 min the job dispatches a `relay` run, which skips the build and only waits again.
+  # `always()` keeps the chain alive after a failed build. Every push starts a chain too; the concurrency
+  # group cancels the older waiting job, so only one chain survives.
   next:
     needs: [build, deploy]
     if: ${{ always() && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 355
     permissions:
       actions: write
     concurrency:
       group: next-run
       cancel-in-progress: true
     steps:
-      - run: sleep 7080
-      - run: gh workflow run news.yml --repo "$GITHUB_REPOSITORY" --ref main
+      - name: Wait for the next update time, then start it
         env:
           GH_TOKEN: ${{ github.token }}
+        run: |
+          now=$(date -u +%s)
+          today=$(date -u +%Y-%m-%d)
+          tomorrow=$(date -u -d "$today +1 day" +%Y-%m-%d)
+          for slot in "$today 00:30" "$today 12:30" "$tomorrow 00:30"; do
+            target=$(date -u -d "$slot" +%s)
+            [ "$target" -gt $((now + 120)) ] && break
+          done
+          wait=$((target - now))
+          echo "Next update at $(date -u -d @"$target"), in $wait s"
+          if [ "$wait" -gt 20700 ]; then
+            sleep 20700
+            gh workflow run news.yml --repo "$GITHUB_REPOSITORY" --ref main -f relay=true
+          else
+            sleep "$wait"
+            gh workflow run news.yml --repo "$GITHUB_REPOSITORY" --ref main
+          fi

@@ -49,10 +49,12 @@ export function feedHtml(items) {
   return items?.length ? items.map((s, i) => storyHtml(s, i === 0)).join("") : '<p class="empty">No stories in this section right now.</p>';
 }
 
-// The site is rebuilt about every two hours (kept slow to stay within the free AI quota). Past
-// STALE_AFTER_MIN the page says how old the stories are and when the next build is due.
-export const UPDATE_EVERY_MIN = 120;
+// The site is rebuilt twice a day, at 00:30 and 12:30 UTC (6 am and 6 pm India time), to stay within the
+// free AI quota. Keep UPDATE_TIMES_UTC in step with the schedule in .github/workflows/news.yml.
+// Past STALE_AFTER_MIN the page says how old the stories are and when newer ones are expected.
+export const UPDATE_TIMES_UTC = [30, 12 * 60 + 30]; // minutes after midnight UTC
 export const STALE_AFTER_MIN = 30;
+const BUILD_MIN = 10; // a build is published within about this long after its start time
 
 function duration(min) {
   if (min < 60) return `${min} min`;
@@ -62,24 +64,28 @@ function duration(min) {
   return m ? `${h} h ${m} min` : `${h} h`;
 }
 
+// Start times of the update before and after `now` (ms).
+function updateTimes(now) {
+  const midnight = Date.UTC(new Date(now).getUTCFullYear(), new Date(now).getUTCMonth(), new Date(now).getUTCDate());
+  const all = [-1, 0, 1].flatMap((d) => UPDATE_TIMES_UTC.map((m) => midnight + d * 86_400_000 + m * 60_000));
+  return { last: Math.max(...all.filter((t) => t <= now)), next: Math.min(...all.filter((t) => t > now)) };
+}
+
+export function minutesToNextUpdate(now = Date.now()) {
+  return Math.round((updateTimes(now).next - now) / 60_000);
+}
+
+export function nextUpdateText(min) {
+  return min > 5 ? `Next update in about ${duration(min)}.` : "Newer stories are due shortly.";
+}
+
 // "" while the stories are fresh; otherwise how old they are and when newer ones are expected.
 export function staleText(generatedAt, now = Date.now()) {
   const t = Date.parse(generatedAt);
-  if (!Number.isFinite(t)) return "";
-  const age = Math.round((now - t) / 60000);
-  if (age < STALE_AFTER_MIN) return "";
-  const due = UPDATE_EVERY_MIN - age;
-  return `These stories are from ${ago(generatedAt, now)}. ${nextUpdateText(due)}`;
-}
-
-// due: minutes until the next scheduled build.
-export function nextUpdateText(due) {
-  return due > 5 ? `Next update in about ${duration(due)}.` : due > -15 ? "Newer stories are due shortly." : "An update is overdue.";
-}
-
-export function nextUpdateIn(generatedAt, now = Date.now()) {
-  const t = Date.parse(generatedAt);
-  return Number.isFinite(t) ? UPDATE_EVERY_MIN - Math.round((now - t) / 60000) : UPDATE_EVERY_MIN;
+  if (!Number.isFinite(t) || now - t < STALE_AFTER_MIN * 60_000) return "";
+  const { last } = updateTimes(now);
+  const late = t < last && now - last > (BUILD_MIN + 20) * 60_000;
+  return `These stories are from ${ago(generatedAt, now)}. ${late ? "The latest update is running late." : nextUpdateText(minutesToNextUpdate(now))}`;
 }
 
 export function statusText(mode, generatedAt, note = "", now = Date.now()) {
