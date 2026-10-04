@@ -15,7 +15,7 @@ test("feed config: unique section ids, >= 2 https feeds each", () => {
 });
 
 test("section order matches the product order", () => {
-  assert.deepEqual(config.sections.map((s) => s.id), ["world", "us", "tech", "india", "business", "health"]);
+  assert.deepEqual(config.sections.map((s) => s.id), ["world", "us", "india", "tech", "business", "health"]);
 });
 
 test("India-based outlets feed the India section only", () => {

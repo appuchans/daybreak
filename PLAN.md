@@ -1,6 +1,6 @@
 # Daybreak: plan and status
 
-Constraints: no paid services; public repo; sections in order World, US, Tech, India, Business, Health.
+Constraints: no paid services; public repo; sections in order World, US, India, Tech, Business, Health.
 
 ## Architecture
 A scheduled GitHub Action fetches RSS feeds (`scripts/feeds.json`), writes `news.json`, and deploys it with the static page in `site/` to GitHub Pages. The browser reads a same-origin file: no backend, no keys, no CORS.
