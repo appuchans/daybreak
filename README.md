@@ -1,6 +1,6 @@
 # Daybreak
 
-Top news on your phone, in seven sections: World, US, India, Tech, Business, Health and Sports (cricket and football only). It is free to use and free to run: no accounts, no ads, no API keys.
+Top news on your phone, in seven sections: World, US, India, Tech, Business, Health and Sports (cricket and football). The India tab and the sports can be changed in the settings. It is free to use and free to run: no accounts, no ads, no API keys.
 
 **Live:** https://mysteriboks.github.io/daybreak/
 
@@ -8,17 +8,16 @@ Top news on your phone, in seven sections: World, US, India, Tech, Business, Hea
 
 - **Top News**, a front page laid out like a newspaper: the day's biggest story from World, US or India leads, then the top three headlines from every section, in the same order as the tabs. Tap a section's name to open it. The app always opens here.
 - The latest headlines from several publishers in each section, with a short summary, how long ago it was published, and a picture where the publisher provides one. Tapping a story opens it on the publisher's own site.
-- A refresh button, and the page refreshes itself when you come back to it after a while.
 - Dark and light themes that follow your phone's setting.
 - Works offline with the last stories it loaded, and on a slow connection shows them after a couple of seconds instead of waiting.
-- New stories every hour, at half past, and a refresh button.
-- Optional AI help: a relevance check for the India section and plain "What it's about" lines for clickbait headlines (see below).
+- New stories every hour, at half past. The page also reloads them when you come back to it after a while, and there's a refresh button.
+- Optional AI help: a relevance check for the country tabs (US and India), duplicate grouping, and plain "What it's about" lines for clickbait headlines (see below).
 
 ## AI features (optional)
 
 With a Gemini API key set up, an AI model does two jobs in the background:
 
-- **Relevance check for the India section.** It reads each candidate headline and judges whether it matters to readers across India. A town's road project, a local crime or a foreign story with no India link is dropped, and more important stories rank higher.
+- **Relevance check.** It rates how much each story matters to the tab's readers. In the India tab (or whichever country it is set to), a town's road project, a local crime or a foreign story with no link to that country is dropped, and more important stories rank higher.
 - **Duplicate check.** It groups headlines that report the same specific event, however each outlet words them, so one event gets one card that lists the other outlets that covered it. It also recognises different angles of one ongoing story, such as an election, and keeps those to two cards per section.
 - **Clickbait helper.** It flags headlines that hide or distort what the story is about (a teaser, a vague phrase, a question left unanswered). Those cards get a one-sentence "What it's about" line, written only from the headline and the publisher's description. Ordinary headlines are left alone, and if the description doesn't make the story clear, no line is added.
 
@@ -31,7 +30,7 @@ Only public headlines and descriptions are sent to Gemini. On Google's free tier
 
 ## How stories are chosen
 
-Each section combines feeds from several news outlets. In the US and India sections, government and policy, politics, defense and security, and major incidents come first. In Health, at least five of the twelve cards are research breakthroughs or pharma and drug developments. Sports covers cricket and football (soccer) only: match results, tournaments, big transfers and injuries rank above live blogs, opinion, fantasy tips and transfer rumours, and general sports feeds are narrowed to those two sports by article address. Hard news ranks above features, opinion and advice columns, and a story several outlets cover moves up (with an AI key, the model rates how much each story matters; without one, only the number of outlets counts). Within the same standing, each outlet's newest story comes first, so no single outlet fills a section, and with an AI key a section shows at most two cards about the same ongoing story (one election, one war), so a big news day can't push out everything else. Stories are from the last 24 hours (48 for Tech and Health, which publish less often); only when a section would otherwise be short do slightly older stories fill the bottom of it. Roundups and briefings that bundle several stories are skipped, and a story shows up in one section only. Indian outlets appear in the India section only (Sports also uses their cricket and football feeds), and World leaves out stories that are mainly about US or Indian domestic affairs, even when a foreign outlet reported them.
+Each section combines feeds from several news outlets. In the US and India sections, government and policy, politics, defense and security, and major incidents come first. In Health, at least five of the twelve cards are research breakthroughs or pharma and drug developments. Sports covers only the sports chosen in the settings (cricket and football to start with): results, tournaments, big transfers and injuries rank above live blogs, opinion, fantasy tips and rumours, and general sports feeds are narrowed to the chosen sports by article address. Hard news ranks above features, opinion and advice columns, and a story several outlets cover moves up (with an AI key, the model rates how much each story matters; without one, only the number of outlets counts). Within the same standing, each outlet's newest story comes first, so no single outlet fills a section, and with an AI key a section shows at most two cards about the same ongoing story (one election, one war), so a big news day can't push out everything else. Stories are from the last 24 hours (48 for Tech and Health, which publish less often); only when a section would otherwise be short do slightly older stories fill the bottom of it. Roundups and briefings that bundle several stories are skipped, and a story shows up in one section only. World leaves out stories that are mainly about the country tabs' domestic affairs (US and India), even when a foreign outlet reported them.
 
 When a publisher's feed leaves out the description, Daybreak reads the one-line preview description from the article page itself. Daybreak keeps just the headline, a one-line summary, the link, the outlet's name and a picture link. The stories belong to their publishers.
 
