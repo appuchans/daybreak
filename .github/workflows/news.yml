@@ -55,9 +55,12 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    # A newer deploy replaces an older one, even one stuck waiting: on 2026-10-06 a deploy sat in "waiting"
+    # for 19 hours holding this group, and every later deploy queued behind it, so the news stopped updating.
+    timeout-minutes: 10
     concurrency:
       group: pages
-      cancel-in-progress: false
+      cancel-in-progress: true
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
