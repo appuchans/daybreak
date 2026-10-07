@@ -1,7 +1,16 @@
 {
-  "schedule": { "everyHours": 1, "minutePast": 30 },
-  "topNews": { "label": "Top News", "leadSections": ["world", "us", "india"], "headlinesPerSection": 3 },
-  "ai": { "model": "gemini-3.5-flash-lite", "summariesPerRun": 10 },
+  "schedule": {
+    "everyHours": 1,
+    "minutePast": 30
+  },
+  "topNews": {
+    "label": "Top News",
+    "headlinesPerSection": 3
+  },
+  "ai": {
+    "model": "gemini-3.5-flash-lite",
+    "summariesPerRun": 10
+  },
   "minFill": 8,
   "perSource": 4,
   "perSection": 12,
@@ -11,6 +20,7 @@
     {
       "id": "world",
       "label": "World",
+      "lead": true,
       "feeds": [
         {
           "name": "BBC News",
@@ -51,16 +61,15 @@
           "state",
           "local"
         ],
-        "dropFocus": [
-          "us",
-          "india"
-        ],
-        "guidance": "These items were collected for the World section of a news app: international news. scope is judged within the story's own country: 'international' = involves several countries, the world as a whole, or a foreign country's affairs that matter beyond its borders; 'national' = one country's domestic affairs; 'state' = one state, province or region of a country (for example a US state such as California, or an Indian state); 'local' = a city, town or district. Wars, disasters and crises of international interest are 'international' wherever they happen. Stories that are mainly about the United States' or India's own domestic affairs belong to those countries' sections, even when a foreign outlet reported them."
+        "dropFocus": "regions",
+        "guidance": "These items were collected for the World section of a news app: international news. scope is judged within the story's own country: 'international' = involves several countries, the world as a whole, or a foreign country's affairs that matter beyond its borders; 'national' = one country's domestic affairs; 'state' = one state, province or region of a country (for example a US state such as California, or a province); 'local' = a city, town or district. Wars, disasters and crises of international interest are 'international' wherever they happen. Stories mainly about the domestic affairs of {regions} belong to those sections, even when a foreign outlet reported them."
       }
     },
     {
       "id": "us",
       "label": "US",
+      "region": "the United States",
+      "lead": true,
       "feeds": [
         {
           "name": "NPR",
@@ -106,6 +115,8 @@
     {
       "id": "india",
       "label": "India",
+      "region": "India",
+      "lead": true,
       "feeds": [
         {
           "name": "The Hindu",
@@ -372,84 +383,315 @@
     {
       "id": "sports",
       "label": "Sports",
+      "sports": [
+        "cricket",
+        "football"
+      ],
       "classify": {
         "minImportance": 3,
         "dropScopes": [],
-        "guidance": "These items were collected for the Sports section of a news app for readers who follow cricket and football (soccer) only. importance for such a reader: 5 = a major result or final, a World Cup, Asia Cup, Ashes, IPL, Champions League or World Cup qualifier outcome, a record-breaking performance, a landmark transfer, a serious injury or suspension of a star player, or a governing-body ruling that changes a competition; 4 = a significant match result or series/league turning point, a squad or lineup announcement for a major fixture, or a notable transfer or managerial change; 3 = a routine fixture report or preview of an important match; 2 = match-day live blogs, opinion and analysis columns, player features, quizzes, fantasy tips, betting odds, ticket or broadcast information, and transfer rumours or gossip; 1 = promotional content. A story about any sport other than cricket or football is importance 1."
+        "guidance": "These items were collected for the Sports section of a news app for readers who follow {sports} only. importance for such a reader: 5 = a major result or final, a championship or title decided, a record-breaking performance, a landmark transfer, trade or signing, a serious injury or suspension of a star player, or a governing-body ruling that changes a competition; 4 = a significant result or turning point in a season or tournament, a squad, lineup or roster announcement for a major event, or a notable transfer, trade or coaching change; 3 = a routine game report or a preview of an important game; 2 = live blogs, opinion and analysis columns, player features, quizzes, fantasy tips, betting odds, ticket or broadcast information, and rumours or gossip; 1 = promotional content. A story about any sport other than {sports} is importance 1."
       },
-      "feeds": [
-        {
-          "name": "ESPNcricinfo",
-          "url": "https://www.espncricinfo.com/rss/content/story/feeds/0.xml"
-        },
-        {
-          "name": "BBC Cricket",
-          "url": "https://feeds.bbci.co.uk/sport/cricket/rss.xml",
-          "only": [
-            "^/sport/cricket/"
+      "sportFeeds": {
+        "cricket": {
+          "label": "cricket",
+          "feeds": [
+            {
+              "name": "ESPNcricinfo",
+              "url": "https://www.espncricinfo.com/rss/content/story/feeds/0.xml"
+            },
+            {
+              "name": "BBC Cricket",
+              "url": "https://feeds.bbci.co.uk/sport/cricket/rss.xml",
+              "only": [
+                "^/sport/cricket/"
+              ]
+            },
+            {
+              "name": "Guardian Cricket",
+              "url": "https://www.theguardian.com/sport/cricket/rss",
+              "exclude": [
+                "^/sport/live/"
+              ]
+            },
+            {
+              "name": "The Hindu Cricket",
+              "url": "https://www.thehindu.com/sport/cricket/feeder/default.rss",
+              "only": [
+                "^/sport/"
+              ]
+            },
+            {
+              "name": "Hindustan Times Cricket",
+              "url": "https://www.hindustantimes.com/feeds/rss/cricket/rssfeed.xml"
+            },
+            {
+              "name": "NDTV Sports",
+              "url": "https://feeds.feedburner.com/ndtvsports-cricket",
+              "only": [
+                "^/cricket/"
+              ]
+            }
           ]
         },
-        {
-          "name": "Guardian Cricket",
-          "url": "https://www.theguardian.com/sport/cricket/rss",
-          "exclude": [
-            "^/sport/live/"
+        "football": {
+          "label": "football (soccer)",
+          "feeds": [
+            {
+              "name": "BBC Football",
+              "url": "https://feeds.bbci.co.uk/sport/football/rss.xml",
+              "only": [
+                "^/sport/football/"
+              ]
+            },
+            {
+              "name": "Guardian Football",
+              "url": "https://www.theguardian.com/football/rss",
+              "only": [
+                "^/football/"
+              ],
+              "exclude": [
+                "^/football/(live|video|ng-interactive)/"
+              ]
+            },
+            {
+              "name": "CBS Sports Soccer",
+              "url": "https://www.cbssports.com/rss/headlines/soccer/"
+            },
+            {
+              "name": "The Hindu Football",
+              "url": "https://www.thehindu.com/sport/football/feeder/default.rss",
+              "only": [
+                "^/sport/"
+              ]
+            },
+            {
+              "name": "talkSPORT Football",
+              "url": "https://talksport.com/feed/",
+              "only": [
+                "^/football/"
+              ]
+            }
           ]
         },
-        {
-          "name": "The Hindu Cricket",
-          "url": "https://www.thehindu.com/sport/cricket/feeder/default.rss",
-          "only": [
-            "^/sport/"
+        "tennis": {
+          "label": "tennis",
+          "feeds": [
+            {
+              "name": "BBC Tennis",
+              "url": "https://feeds.bbci.co.uk/sport/tennis/rss.xml",
+              "only": [
+                "^/sport/tennis/"
+              ]
+            },
+            {
+              "name": "Guardian Tennis",
+              "url": "https://www.theguardian.com/sport/tennis/rss",
+              "only": [
+                "^/sport/"
+              ],
+              "exclude": [
+                "^/sport/(live|gallery)/"
+              ]
+            },
+            {
+              "name": "CBS Sports Tennis",
+              "url": "https://www.cbssports.com/rss/headlines/tennis/",
+              "only": [
+                "^/tennis/"
+              ]
+            },
+            {
+              "name": "Yahoo Tennis",
+              "url": "https://sports.yahoo.com/tennis/rss/",
+              "exclude": [
+                "^/entertainment/"
+              ]
+            },
+            {
+              "name": "talkSPORT Tennis",
+              "url": "https://talksport.com/feed/",
+              "only": [
+                "^/tennis/"
+              ]
+            }
           ]
         },
-        {
-          "name": "Hindustan Times Cricket",
-          "url": "https://www.hindustantimes.com/feeds/rss/cricket/rssfeed.xml"
-        },
-        {
-          "name": "NDTV Sports",
-          "url": "https://feeds.feedburner.com/ndtvsports-cricket",
-          "only": [
-            "^/cricket/"
+        "formula1": {
+          "label": "Formula 1",
+          "feeds": [
+            {
+              "name": "BBC Formula 1",
+              "url": "https://feeds.bbci.co.uk/sport/formula1/rss.xml",
+              "only": [
+                "^/sport/formula1/"
+              ]
+            },
+            {
+              "name": "Guardian Formula 1",
+              "url": "https://www.theguardian.com/sport/formulaone/rss",
+              "only": [
+                "^/sport/"
+              ],
+              "exclude": [
+                "^/sport/live/"
+              ]
+            },
+            {
+              "name": "Autosport",
+              "url": "https://www.autosport.com/rss/f1/news/",
+              "only": [
+                "^/f1/"
+              ]
+            },
+            {
+              "name": "Motorsport.com",
+              "url": "https://www.motorsport.com/rss/f1/news/",
+              "only": [
+                "^/f1/"
+              ]
+            }
           ]
         },
-        {
-          "name": "BBC Football",
-          "url": "https://feeds.bbci.co.uk/sport/football/rss.xml",
-          "only": [
-            "^/sport/football/"
+        "nfl": {
+          "label": "American football (NFL)",
+          "feeds": [
+            {
+              "name": "CBS Sports NFL",
+              "url": "https://www.cbssports.com/rss/headlines/nfl/",
+              "only": [
+                "^/nfl/"
+              ]
+            },
+            {
+              "name": "Pro Football Talk",
+              "url": "https://www.nbcsports.com/profootballtalk.rss"
+            },
+            {
+              "name": "Yahoo NFL",
+              "url": "https://sports.yahoo.com/nfl/rss/"
+            },
+            {
+              "name": "BBC American Football",
+              "url": "https://feeds.bbci.co.uk/sport/american-football/rss.xml",
+              "only": [
+                "^/sport/american-football/"
+              ]
+            },
+            {
+              "name": "Guardian NFL",
+              "url": "https://www.theguardian.com/sport/nfl/rss",
+              "only": [
+                "^/sport/"
+              ],
+              "exclude": [
+                "^/sport/live/"
+              ]
+            }
           ]
         },
-        {
-          "name": "Guardian Football",
-          "url": "https://www.theguardian.com/football/rss",
-          "only": [
-            "^/football/"
-          ],
-          "exclude": [
-            "^/football/(live|video|ng-interactive)/"
+        "nba": {
+          "label": "basketball (NBA)",
+          "feeds": [
+            {
+              "name": "CBS Sports NBA",
+              "url": "https://www.cbssports.com/rss/headlines/nba/",
+              "only": [
+                "^/nba/"
+              ]
+            },
+            {
+              "name": "Yahoo NBA",
+              "url": "https://sports.yahoo.com/nba/rss/"
+            },
+            {
+              "name": "BBC Basketball",
+              "url": "https://feeds.bbci.co.uk/sport/basketball/rss.xml",
+              "only": [
+                "^/sport/basketball/"
+              ]
+            },
+            {
+              "name": "Guardian NBA",
+              "url": "https://www.theguardian.com/sport/nba/rss",
+              "only": [
+                "^/sport/"
+              ]
+            },
+            {
+              "name": "talkSPORT Basketball",
+              "url": "https://talksport.com/feed/",
+              "only": [
+                "^/basketball/"
+              ]
+            }
           ]
         },
-        {
-          "name": "CBS Sports Soccer",
-          "url": "https://www.cbssports.com/rss/headlines/soccer/"
-        },
-        {
-          "name": "The Hindu Football",
-          "url": "https://www.thehindu.com/sport/football/feeder/default.rss",
-          "only": [
-            "^/sport/"
+        "mlb": {
+          "label": "baseball (MLB)",
+          "feeds": [
+            {
+              "name": "CBS Sports MLB",
+              "url": "https://www.cbssports.com/rss/headlines/mlb/",
+              "only": [
+                "^/mlb/"
+              ]
+            },
+            {
+              "name": "Yahoo MLB",
+              "url": "https://sports.yahoo.com/mlb/rss/"
+            },
+            {
+              "name": "MLB.com",
+              "url": "https://www.mlb.com/feeds/news/rss.xml"
+            },
+            {
+              "name": "Guardian MLB",
+              "url": "https://www.theguardian.com/sport/mlb/rss",
+              "only": [
+                "^/sport/"
+              ]
+            },
+            {
+              "name": "BBC Baseball",
+              "url": "https://feeds.bbci.co.uk/sport/baseball/rss.xml",
+              "only": [
+                "^/sport/baseball/"
+              ]
+            }
           ]
         },
-        {
-          "name": "talkSPORT",
-          "url": "https://talksport.com/feed/",
-          "only": [
-            "^/football/"
+        "nhl": {
+          "label": "ice hockey (NHL)",
+          "feeds": [
+            {
+              "name": "CBS Sports NHL",
+              "url": "https://www.cbssports.com/rss/headlines/nhl/",
+              "only": [
+                "^/nhl/"
+              ]
+            },
+            {
+              "name": "Yahoo NHL",
+              "url": "https://sports.yahoo.com/nhl/rss/"
+            },
+            {
+              "name": "BBC Ice Hockey",
+              "url": "https://feeds.bbci.co.uk/sport/ice-hockey/rss.xml",
+              "only": [
+                "^/sport/ice-hockey/"
+              ]
+            },
+            {
+              "name": "Guardian NHL",
+              "url": "https://www.theguardian.com/sport/nhl/rss",
+              "only": [
+                "^/sport/"
+              ]
+            }
           ]
         }
-      ]
+      }
     }
   ]
 }

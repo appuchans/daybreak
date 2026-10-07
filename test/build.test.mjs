@@ -161,7 +161,7 @@ test("AI classification drops a local story from a classified section and caches
       assert.ok(r.out.includes("AI classification india: cached=0 classified=2 unclassified=1"));
       assert.deepEqual(seenPrompts, ["application/json", "application/json"], "one classification request, then one grouping request");
       const cache = JSON.parse(await readFile(join(dir, "classify-cache.json"), "utf8"));
-      assert.deepEqual(cache["india|x.example/6"], { scope: "local", importance: 2, topic: "other", focus: "world", clickbait: false, v: 8 });
+      assert.deepEqual(cache["india|x.example/6"], { scope: "local", importance: 2, topic: "other", focus: "world", clickbait: false, v: "8:" });
       assert.ok(!JSON.stringify(r.news).includes("TOPSECRET") && !JSON.stringify(cache).includes("TOPSECRET"));
     });
   } finally { gemini.close(); }

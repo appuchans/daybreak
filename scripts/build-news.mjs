@@ -6,8 +6,10 @@ import { geminiCaller, summarizeSections } from "./summarize.mjs";
 import { classifyItems, geminiClassifier } from "./classify.mjs";
 import { enrichSnippets } from "./describe.mjs";
 import { groupEvents, geminiGrouper } from "./group.mjs";
+import { resolveConfig } from "./resolve.mjs";
 
-const config = JSON.parse(await readFile(process.env.CONFIG_FILE ?? new URL("./config.json", import.meta.url), "utf8"));
+const config = resolveConfig(JSON.parse(await readFile(process.env.CONFIG_FILE ?? new URL("./config.json", import.meta.url), "utf8")));
+for (const p of config.problems) console.log(`::warning::config: ${p}`);
 const previous = await readFile(process.env.PREVIOUS_NEWS ?? "previous-news.json", "utf8")
   .then(JSON.parse)
   .catch(() => null);
@@ -78,7 +80,7 @@ for (const section of [...config.sections].reverse()) {
     for (const f of section.feeds) feedsPerName.set(f.name, (feedsPerName.get(f.name) ?? 0) + 1);
     items = trimPool(items, (name) => config.perSource * 2 * Math.min(feedsPerName.get(name) ?? 1, 4));
     const key = (it) => `${section.id}|${canonicalUrl(it.url)}`;
-    const stats = await classifyItems(items, { key, guidance: section.classify?.guidance ?? `These items were collected for the ${section.label} section of a news app. Rate scope and importance for a general reader of that section.`, call: geminiClassifier(geminiOptions), cache: classifyCache, delayMs: aiDelayMs });
+    const stats = await classifyItems(items, { key, regions: config.regions, guidance: section.classify?.guidance ?? `These items were collected for the ${section.label} section of a news app. Rate scope and importance for a general reader of that section.`, call: geminiClassifier(geminiOptions), cache: classifyCache, delayMs: aiDelayMs });
     for (const i of items) usedInRun.add(key(i));
     // Group headlines that report the same event, among the stories likely to be shown (the provisional top
     // 2 x perSection), so one event takes one card. Not cached: the groups depend on what else is in the pool.

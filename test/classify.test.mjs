@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseClassification, classifyItems, buildUser, CACHE_VERSION } from "../scripts/classify.mjs";
+import { parseClassification, classifyItems, buildUser, CACHE_VERSION, cacheVersion } from "../scripts/classify.mjs";
 import { HaltGemini } from "../scripts/gemini.mjs";
 import { buildSection } from "../scripts/news.mjs";
 
@@ -28,7 +28,7 @@ test("buildUser puts headlines in a JSON array and trims the note", () => {
 
 test("classifyItems reuses cached answers and only asks about new stories", async () => {
   const items = [item(1), item(2)];
-  const cache = new Map([["a.example/1", { scope: "national", importance: 4, topic: "policy", focus: "us", clickbait: false, v: CACHE_VERSION }]]);
+  const cache = new Map([["a.example/1", { scope: "national", importance: 4, topic: "policy", focus: "us", clickbait: false, v: cacheVersion() }]]);
   const seen = [];
   const stats = await classifyItems(items, { guidance: "G", cache, delayMs: 0, sleep: noSleep, call: async (sys, user) => { seen.push(user); return JSON.stringify([{ id: 0, scope: "local", importance: 2, topic: "incident", focus: "india", clickbait: true }]); } });
   assert.deepEqual([stats.cached, stats.classified], [1, 1]);
@@ -36,7 +36,7 @@ test("classifyItems reuses cached answers and only asks about new stories", asyn
   assert.equal(items[1].scope, "local");
   assert.equal(seen.length, 1);
   assert.ok(seen[0].includes("Headline number 2") && !seen[0].includes("Headline number 1"));
-  assert.deepEqual(cache.get("a.example/2"), { scope: "local", importance: 2, topic: "incident", focus: "india", clickbait: true, v: CACHE_VERSION });
+  assert.deepEqual(cache.get("a.example/2"), { scope: "local", importance: 2, topic: "incident", focus: "india", clickbait: true, v: cacheVersion() });
   assert.equal(items[1].clickbait, true);
 });
 
@@ -85,7 +85,7 @@ test("a section without classify settings ignores scope fields", () => {
 
 test("a cached answer from an older rubric version is asked again", async () => {
   const items = [item(1)];
-  const cache = new Map([["a.example/1", { scope: "national", importance: 4, clickbait: false, v: CACHE_VERSION - 1 }]]);
+  const cache = new Map([["a.example/1", { scope: "national", importance: 4, clickbait: false, v: cacheVersion() - 1 }]]);
   let calls = 0;
   await classifyItems(items, { guidance: "G", cache, delayMs: 0, sleep: noSleep, call: async () => { calls++; return JSON.stringify([{ id: 0, scope: "national", importance: 4, clickbait: true }]); } });
   assert.equal(calls, 1);

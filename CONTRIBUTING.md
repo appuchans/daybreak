@@ -107,6 +107,12 @@ Health is meant to cover research and pharma as well as health news. Sources: BB
 - Indian outlets' feeds are filtered by URL section only, so a regional or foreign story filed under a national section still gets through; there is no classifier. Mint was dropped because its company and economy feeds are mostly global news.
 - A publisher image that fails to load makes its card reflow once.
 
+## Country sections and sports (`scripts/resolve.mjs`)
+
+`resolveConfig` turns config.json into what the build runs on. Sections with a `region` are country sections: each becomes a `focus` value in the classifier's prompt (`systemPrompt(regions)` in `classify.mjs`), `dropFocus: "regions"` (World) expands to their ids, and `{regions}` in any guidance becomes their names. Cached ratings carry `cacheVersion(regions)`, so changing the set of countries re-rates once. `lead: true` marks the sections that may supply the Top News lead. The sports section takes its feeds from `sportFeeds` for the names in `sports` (at most `MAX_SPORTS`, 5), and `{sports}` in its guidance becomes their labels. `config.test.mjs` checks structure only, so switching a country or the sports doesn't need a test change; problems (too many sports, a sport with no feeds) also appear as build warnings.
+
+Sports feeds vetted 2026-10-07: tennis (BBC, Guardian, CBS Sports, Yahoo, talkSPORT tennis path), Formula 1 (BBC, Guardian, Autosport, Motorsport.com), NFL (CBS Sports, Pro Football Talk, Yahoo, BBC, Guardian), NBA (CBS Sports, Yahoo, BBC, Guardian, talkSPORT basketball path), MLB (CBS Sports, Yahoo, MLB.com, Guardian, BBC) and NHL (CBS Sports, Yahoo, BBC, Guardian). ESPN's feeds return no items; NBA.com and NHL.com refuse (403); PlanetF1, Tennis.com and CBS racing are gone (404). BBC and Guardian NBA/NHL feeds go quiet off-season.
+
 ## Sports sources
 
 Sports is cricket and football only. Vetted 2026-10-04: ESPNcricinfo (no images), BBC Cricket and Football, Guardian Cricket and Football, The Hindu Cricket and Football, Hindustan Times Cricket, NDTV Sports (cricket), CBS Sports Soccer and talkSPORT (football path only). Dead, blocked or stale: ESPN soccer, Sky Sports (both), Goal, Cricbuzz, Indian Express (403), Times of India cricket (stale since 2016), Fox Sports soccer (stale). Multi-sport feeds are narrowed with `only` patterns. Indian outlets are allowed in this section only (see the config test). There is no cricket/football minimum yet; if one sport crowds out the other, add topics for them to the classifier and a `reserve`.

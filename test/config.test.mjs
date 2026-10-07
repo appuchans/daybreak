@@ -1,58 +1,53 @@
+// Checks config.json the way the build will use it. These tests run before every build, so they check
+// structure, not today's choices: switching the India tab to another country or the sports line-up must
+// not need a test change.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { resolveConfig, MAX_SPORTS } from "../scripts/resolve.mjs";
 
-const config = JSON.parse(await readFile(new URL("../scripts/config.json", import.meta.url), "utf8"));
+const raw = JSON.parse(await readFile(new URL("../scripts/config.json", import.meta.url), "utf8"));
+const config = resolveConfig(raw);
 
-test("feed config: unique section ids, >= 2 https feeds each", () => {
+test("config resolves with no problems", () => {
+  assert.deepEqual(config.problems, []);
+});
+
+test("sections: unique ids and labels, >= 2 https feeds each, valid only/exclude patterns", () => {
   const ids = config.sections.map((s) => s.id);
   assert.equal(new Set(ids).size, ids.length);
   for (const s of config.sections) {
     assert.ok(s.label, s.id);
     assert.ok(s.feeds.length >= 2, `${s.id} needs at least 2 feeds`);
-    for (const f of s.feeds) assert.ok(f.name && f.url.startsWith("https://"), `${s.id}/${f.name}`);
+    for (const f of s.feeds) {
+      assert.ok(f.name && f.url.startsWith("https://"), `${s.id}/${f.name}`);
+      for (const p of [...(f.only ?? []), ...(f.exclude ?? [])]) assert.doesNotThrow(() => new RegExp(p), `${f.name}: ${p}`);
+    }
   }
 });
 
-test("section order matches the product order", () => {
-  assert.deepEqual(config.sections.map((s) => s.id), ["world", "us", "india", "tech", "business", "health", "sports"]);
-});
-
-// Sports is the one exception: its Indian outlets are cricket and football feeds, not general news.
-test("India-based outlets feed the India and Sports sections only", () => {
-  const indian = /thehindu|timesofindia|indiatimes|ndtv|hindustantimes|livemint|economictimes|businessline/;
-  for (const s of config.sections.filter((s) => s.id !== "india" && s.id !== "sports")) {
-    for (const f of s.feeds) assert.ok(!indian.test(f.url), `${s.id}/${f.name} is an India-based feed`);
+test("country sections: a region name, guidance, government and politics first; World drops their domestic news", () => {
+  assert.ok(config.regions.length >= 1);
+  for (const r of config.regions) {
+    const s = config.sections.find((x) => x.id === r.id);
+    assert.ok(r.name && s.classify?.guidance, r.id);
+    assert.deepEqual(s.classify.priorityTopics, ["policy", "politics", "defense", "incident"], r.id);
   }
-});
-
-test("Indian general-news feeds only take articles filed under India or national news", () => {
-  const india = config.sections.find((s) => s.id === "india");
-  const byUrl = (part) => india.feeds.find((f) => f.url.includes(part));
-  assert.deepEqual(byUrl("ndtvnews-india-news").only, ["^/india-news/"]);
-  assert.deepEqual(byUrl("-2128936835").only, ["^/india/"]);
-  assert.ok(byUrl("thehindu.com/news/national").exclude.some((p) => p.includes("cities")));
-  for (const f of india.feeds) for (const p of [...(f.only ?? []), ...(f.exclude ?? [])]) assert.doesNotThrow(() => new RegExp(p), `${f.name}: ${p}`);
-});
-
-test("the India section asks the AI to drop local and foreign stories", () => {
-  const india = config.sections.find((s) => s.id === "india");
-  assert.deepEqual(india.classify.dropScopes, ["local", "international"]);
-  assert.ok(india.classify.minImportance >= 1 && india.classify.guidance.includes("local"));
-});
-
-test("US and India put government, politics, defense and incident stories first", () => {
-  for (const id of ["us", "india"]) {
-    const { classify } = config.sections.find((s) => s.id === id);
-    assert.deepEqual(classify.priorityTopics, ["policy", "politics", "defense", "incident"], id);
-    assert.ok(classify.priorityBonus >= 2, id);
-  }
-});
-
-test("World drops stories that are mainly US or India domestic news", () => {
   const world = config.sections.find((s) => s.id === "world");
-  assert.deepEqual(world.classify.dropFocus, ["us", "india"]);
+  assert.deepEqual(world.classify.dropFocus, config.regions.map((r) => r.id));
+  assert.ok(!world.classify.guidance.includes("{regions}"));
   assert.deepEqual(world.classify.dropScopes, ["state", "local"], "a story about one state or city is domestic news");
+});
+
+test("sports: 1 to 5 sports, each with vetted feeds; the guidance names them", () => {
+  const raw_ = raw.sections.find((s) => s.sports);
+  assert.ok(raw_.sports.length >= 1 && raw_.sports.length <= MAX_SPORTS);
+  for (const [name, entry] of Object.entries(raw_.sportFeeds)) assert.ok(entry.label && entry.feeds.length >= 2, `${name} needs a label and at least 2 feeds`);
+  const sports = config.sections.find((s) => s.id === raw_.id);
+  assert.ok(!sports.classify.guidance.includes("{sports}"));
+  for (const s of raw_.sports) assert.ok(sports.classify.guidance.includes(raw_.sportFeeds[s].label), s);
+  // A multi-sport feed must be narrowed to its sport by URL path.
+  for (const entry of Object.values(raw_.sportFeeds)) for (const f of entry.feeds) if (f.url.includes("talksport.com")) assert.ok(f.only?.length, f.name);
 });
 
 test("Business keeps only economy-topic stories and drops minor, personal-finance level ones", () => {
@@ -70,21 +65,11 @@ test("Health reserves room for research and pharma stories", () => {
   assert.equal(classify.priorityBonus, 0, "the reserve is the guarantee; a bonus on top crowded out public-health news");
 });
 
-test("Sports keeps to cricket and football feeds", () => {
-  const sports = config.sections.find((s) => s.id === "sports");
-  assert.ok(sports.feeds.length >= 8);
-  assert.ok(sports.classify.guidance.includes("cricket") && sports.classify.guidance.includes("football"));
-  for (const f of sports.feeds) for (const p of [...(f.only ?? []), ...(f.exclude ?? [])]) assert.doesNotThrow(() => new RegExp(p), `${f.name}: ${p}`);
-  // General multi-sport feeds must be narrowed to a sport by URL path.
-  assert.deepEqual(sports.feeds.find((f) => f.name === "talkSPORT").only, ["^/football/"]);
-});
-
 test("settings: schedule fits the workflow's wait (whole hours dividing a day, at most 4) and the page settings are complete", () => {
   const { schedule, topNews } = config;
   assert.ok([1, 2, 3, 4].includes(schedule.everyHours), "a job may wait at most 6 hours; the period must divide 24 hours");
   assert.ok(Number.isInteger(schedule.minutePast) && schedule.minutePast >= 0 && schedule.minutePast < 60);
   assert.ok(topNews.label && Number.isInteger(topNews.headlinesPerSection) && topNews.headlinesPerSection > 0);
-  const ids = config.sections.map((s) => s.id);
-  assert.ok(topNews.leadSections.length && topNews.leadSections.every((id) => ids.includes(id)), "lead sections must exist");
+  assert.ok(topNews.leadSections.length, "mark at least one section `lead: true`");
   assert.ok(config.ai.model && Number.isInteger(config.ai.summariesPerRun) && Number.isInteger(config.minFill));
 });

@@ -54,9 +54,13 @@ Everything you might want to change is in `scripts/config.json`:
 
 - `schedule`: how often the news updates (`everyHours`: 1 to 4; `minutePast`: the minute past the hour, UTC).
 - `perSection`, `perSource`, `perStory`, `maxAgeHours`, `minFill`: cards per section, the most per outlet and per ongoing story, the oldest story allowed (sections can override it), and how many cards a section needs before older stories may fill it.
-- `topNews`: the home tab's name, which sections can supply its lead story, and headlines per section.
+- `topNews`: the home tab's name and headlines per section. Sections marked `"lead": true` (World, US and India) can supply its lead story.
 - `ai`: the Gemini model and how many new "What it's about" lines a build may write.
 - `sections`: the tabs, in order, with their feeds and AI rules.
+
+**Switching the India tab to another country.** In its section, change `id`, `label` and `region` (the country's name, for example `"the United Kingdom"`), replace its `feeds` with that country's news feeds, and rewrite its `guidance` for that country. The World tab and the AI pick up the change by themselves: World then leaves out that country's domestic news instead of India's. A tab can also be about a topic instead of a country: leave out `region`, and describe the topic in `guidance`.
+
+**Choosing sports.** In the Sports section, `sports` lists up to five sports by name. Ready to use: `cricket`, `football` (soccer), `tennis`, `formula1`, `nfl`, `nba`, `mlb` and `nhl`. Their feeds are under `sportFeeds`; another sport needs an entry there with at least two feeds.
 
 Commit a change and the site rebuilds with it.
 
