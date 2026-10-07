@@ -1,102 +1,212 @@
 [
  {
-  "section": "sports",
-  "name": "BBC Cricket",
-  "url": "https://feeds.bbci.co.uk/sport/cricket/rss.xml"
+  "section": "tennis",
+  "name": "BBC tennis",
+  "url": "https://feeds.bbci.co.uk/sport/tennis/rss.xml"
  },
  {
-  "section": "sports",
-  "name": "BBC Football",
-  "url": "https://feeds.bbci.co.uk/sport/football/rss.xml"
+  "section": "tennis",
+  "name": "Guardian tennis",
+  "url": "https://www.theguardian.com/sport/tennis/rss"
  },
  {
-  "section": "sports",
-  "name": "Guardian Cricket",
-  "url": "https://www.theguardian.com/sport/cricket/rss"
+  "section": "formula1",
+  "name": "BBC formula1",
+  "url": "https://feeds.bbci.co.uk/sport/formula1/rss.xml"
  },
  {
-  "section": "sports",
-  "name": "Guardian Football",
-  "url": "https://www.theguardian.com/football/rss"
+  "section": "formula1",
+  "name": "Guardian formula1",
+  "url": "https://www.theguardian.com/sport/formulaone/rss"
  },
  {
-  "section": "sports",
-  "name": "ESPNcricinfo",
-  "url": "https://www.espncricinfo.com/rss/content/story/feeds/0.xml"
+  "section": "nfl",
+  "name": "BBC nfl",
+  "url": "https://feeds.bbci.co.uk/sport/american-football/rss.xml"
  },
  {
-  "section": "sports",
-  "name": "ESPN Soccer",
-  "url": "https://www.espn.com/espn/rss/soccer/news"
+  "section": "nfl",
+  "name": "Guardian nfl",
+  "url": "https://www.theguardian.com/sport/nfl/rss"
  },
  {
-  "section": "sports",
-  "name": "Sky Sports Football",
-  "url": "https://www.skysports.com/rss/12040"
+  "section": "nba",
+  "name": "BBC nba",
+  "url": "https://feeds.bbci.co.uk/sport/basketball/rss.xml"
  },
  {
-  "section": "sports",
-  "name": "Sky Sports Cricket",
-  "url": "https://www.skysports.com/rss/12026"
+  "section": "nba",
+  "name": "Guardian nba",
+  "url": "https://www.theguardian.com/sport/nba/rss"
  },
  {
-  "section": "sports",
-  "name": "CBS Sports Soccer",
-  "url": "https://www.cbssports.com/rss/headlines/soccer/"
+  "section": "mlb",
+  "name": "BBC mlb",
+  "url": "https://feeds.bbci.co.uk/sport/baseball/rss.xml"
  },
  {
-  "section": "sports",
-  "name": "Times of India Cricket",
-  "url": "https://timesofindia.indiatimes.com/rssfeeds/4719161.cms"
+  "section": "mlb",
+  "name": "Guardian mlb",
+  "url": "https://www.theguardian.com/sport/mlb/rss"
  },
  {
-  "section": "sports",
-  "name": "The Hindu Cricket",
-  "url": "https://www.thehindu.com/sport/cricket/feeder/default.rss"
+  "section": "nhl",
+  "name": "BBC nhl",
+  "url": "https://feeds.bbci.co.uk/sport/ice-hockey/rss.xml"
  },
  {
-  "section": "sports",
-  "name": "The Hindu Football",
-  "url": "https://www.thehindu.com/sport/football/feeder/default.rss"
+  "section": "nhl",
+  "name": "Guardian nhl",
+  "url": "https://www.theguardian.com/sport/nhl/rss"
  },
  {
-  "section": "sports",
-  "name": "Hindustan Times Cricket",
-  "url": "https://www.hindustantimes.com/feeds/rss/cricket/rssfeed.xml"
+  "section": "nfl",
+  "name": "CBS nfl",
+  "url": "https://www.cbssports.com/rss/headlines/nfl/"
  },
  {
-  "section": "sports",
-  "name": "NDTV Sports",
-  "url": "https://feeds.feedburner.com/ndtvsports-cricket"
+  "section": "nfl",
+  "name": "ESPN nfl",
+  "url": "https://www.espn.com/espn/rss/nfl/news"
  },
  {
-  "section": "sports",
-  "name": "Indian Express Cricket",
-  "url": "https://indianexpress.com/section/sports/cricket/feed/"
+  "section": "nba",
+  "name": "CBS nba",
+  "url": "https://www.cbssports.com/rss/headlines/nba/"
  },
  {
-  "section": "sports",
-  "name": "Al Jazeera Sport",
-  "url": "https://www.aljazeera.com/xml/rss/all.xml"
+  "section": "nba",
+  "name": "ESPN nba",
+  "url": "https://www.espn.com/espn/rss/nba/news"
  },
  {
-  "section": "sports",
-  "name": "Fox Sports Soccer",
-  "url": "https://api.foxsports.com/v2/content/optimized-rss?partnerKey=MB0Wehpmuj2lUhuRhQaafhBjAJqaPU244mlTDK1i&size=30&tags=fs/soccer"
+  "section": "mlb",
+  "name": "CBS mlb",
+  "url": "https://www.cbssports.com/rss/headlines/mlb/"
  },
  {
-  "section": "sports",
+  "section": "mlb",
+  "name": "ESPN mlb",
+  "url": "https://www.espn.com/espn/rss/mlb/news"
+ },
+ {
+  "section": "nhl",
+  "name": "CBS nhl",
+  "url": "https://www.cbssports.com/rss/headlines/nhl/"
+ },
+ {
+  "section": "nhl",
+  "name": "ESPN nhl",
+  "url": "https://www.espn.com/espn/rss/nhl/news"
+ },
+ {
+  "section": "tennis",
+  "name": "CBS tennis",
+  "url": "https://www.cbssports.com/rss/headlines/tennis/"
+ },
+ {
+  "section": "tennis",
+  "name": "ESPN tennis",
+  "url": "https://www.espn.com/espn/rss/tennis/news"
+ },
+ {
+  "section": "formula1",
+  "name": "CBS formula1",
+  "url": "https://www.cbssports.com/rss/headlines/racing/"
+ },
+ {
+  "section": "formula1",
+  "name": "ESPN formula1",
+  "url": "https://www.espn.com/espn/rss/racing/news"
+ },
+ {
+  "section": "nfl",
+  "name": "Yahoo nfl",
+  "url": "https://sports.yahoo.com/nfl/rss/"
+ },
+ {
+  "section": "nba",
+  "name": "Yahoo nba",
+  "url": "https://sports.yahoo.com/nba/rss/"
+ },
+ {
+  "section": "mlb",
+  "name": "Yahoo mlb",
+  "url": "https://sports.yahoo.com/mlb/rss/"
+ },
+ {
+  "section": "nhl",
+  "name": "Yahoo nhl",
+  "url": "https://sports.yahoo.com/nhl/rss/"
+ },
+ {
+  "section": "tennis",
+  "name": "Yahoo tennis",
+  "url": "https://sports.yahoo.com/tennis/rss/"
+ },
+ {
+  "section": "formula1",
+  "name": "Yahoo f1",
+  "url": "https://sports.yahoo.com/motorsports/f1/rss/"
+ },
+ {
+  "section": "formula1",
+  "name": "Autosport",
+  "url": "https://www.autosport.com/rss/f1/news/"
+ },
+ {
+  "section": "formula1",
+  "name": "Motorsport.com",
+  "url": "https://www.motorsport.com/rss/f1/news/"
+ },
+ {
+  "section": "formula1",
+  "name": "PlanetF1",
+  "url": "https://www.planetf1.com/feed"
+ },
+ {
+  "section": "tennis",
+  "name": "Tennis.com",
+  "url": "https://www.tennis.com/rss"
+ },
+ {
+  "section": "tennis",
+  "name": "Tennis World USA",
+  "url": "https://www.tennisworldusa.org/rss/news.xml"
+ },
+ {
+  "section": "nhl",
+  "name": "NHL.com",
+  "url": "https://www.nhl.com/rss/news.xml"
+ },
+ {
+  "section": "nba",
+  "name": "NBA.com",
+  "url": "https://www.nba.com/news/rss.xml"
+ },
+ {
+  "section": "mlb",
+  "name": "MLB.com",
+  "url": "https://www.mlb.com/feeds/news/rss.xml"
+ },
+ {
+  "section": "nfl",
+  "name": "NFL.com",
+  "url": "https://www.nfl.com/rss/rsslanding?searchString=home"
+ },
+ {
+  "section": "nfl",
+  "name": "Pro Football Talk",
+  "url": "https://www.nbcsports.com/profootballtalk.rss"
+ },
+ {
+  "section": "nba",
+  "name": "ProBasketballTalk",
+  "url": "https://www.nbcsports.com/nba/probasketballtalk.rss"
+ },
+ {
+  "section": "multi",
   "name": "talkSPORT",
   "url": "https://talksport.com/feed/"
- },
- {
-  "section": "sports",
-  "name": "Goal",
-  "url": "https://www.goal.com/feeds/en/news"
- },
- {
-  "section": "sports",
-  "name": "Cricbuzz",
-  "url": "https://www.cricbuzz.com/cricket-news/rss"
  }
 ]
