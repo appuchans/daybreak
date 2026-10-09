@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import { cleanSummary, geminiCaller, summarizeSections, HaltSummaries, eligible } from "../scripts/summarize.mjs";
+import { setOverloadRetries } from "../scripts/gemini.mjs";
 
 const LONG = "A description long enough to be worth summarizing, with plenty of detail beyond the headline itself.";
 const item = (n, over = {}) => ({ title: `Headline ${n}`, snippet: LONG, url: `https://a.example/${n}`, source: "A", publishedAt: n, clickbait: true, ...over });
@@ -73,6 +74,25 @@ test("generate: a 429 is retried after Google's suggested delay; three in a row 
     await assert.rejects(geminiCaller({ apiKey: "k", baseUrl, minIntervalMs: 0, retryDelayMs: 0 })(item(1)), HaltSummaries);
     assert.equal(seen.length, 3);
   });
+});
+
+test("generate: an overload (503/500) is retried; the build-wide retry budget stops further retries", async () => {
+  const overloaded = (req, res) => { res.statusCode = 503; res.setHeader("content-type", "application/json"); res.end(JSON.stringify({ error: { status: "UNAVAILABLE", message: "high demand" } })); };
+  setOverloadRetries(3);
+  await withGemini((req, res, n) => (n === 1 ? overloaded(req, res) : reply("After overload.")(req, res)), async (baseUrl, seen) => {
+    assert.equal(await geminiCaller({ apiKey: "k", baseUrl, minIntervalMs: 0, retryDelayMs: 0 })(item(1)), "After overload.");
+    assert.equal(seen.length, 2);
+  });
+  await withGemini(overloaded, async (baseUrl, seen) => {
+    // Two retries left the budget at 0: a persistent overload is an ordinary failure, not a halt.
+    await assert.rejects(geminiCaller({ apiKey: "k", baseUrl, minIntervalMs: 0, retryDelayMs: 0 })(item(1)), (e) => !(e instanceof HaltSummaries));
+    assert.equal(seen.length, 3);
+  });
+  await withGemini(overloaded, async (baseUrl, seen) => {
+    await assert.rejects(geminiCaller({ apiKey: "k", baseUrl, minIntervalMs: 0, retryDelayMs: 0 })(item(1)));
+    assert.equal(seen.length, 1, "budget spent: no retry");
+  });
+  setOverloadRetries(6);
 });
 
 test("generate: a 429 asking for a long wait (the daily quota) halts at once instead of waiting", async () => {

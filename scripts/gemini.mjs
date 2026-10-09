@@ -33,6 +33,13 @@ async function errorInfo(res, apiKey) {
 }
 
 const MAX_RETRY_WAIT_MS = 90_000;
+
+// 500/503 mean Google is overloaded ("This model is currently experiencing high demand"), which passes within
+// seconds to minutes: on 2026-10-09 it cost three sections their story grouping and two their ratings in one
+// build. These are retried like a 429, but from one budget for the whole build, so a long outage adds at most
+// a few minutes instead of running into the build's 20-minute timeout.
+let overloadRetriesLeft = 6;
+export function setOverloadRetries(n) { overloadRetriesLeft = n; }
 const envNumber = (name, fallback) => (process.env[name] !== undefined && process.env[name] !== "" ? Number(process.env[name]) : fallback);
 
 export async function generate({
@@ -64,6 +71,12 @@ export async function generate({
       const wait = Math.max(retryMs ?? 0, retryDelayMs);
       console.log(`::notice::Gemini rate limit (HTTP 429); retrying in ${Math.round(wait / 1000)} s`);
       await sleep(wait);
+      continue;
+    }
+    if ([500, 503].includes(res.status) && attempt < retries && overloadRetriesLeft > 0) {
+      overloadRetriesLeft--;
+      console.log(`::notice::Gemini overloaded (HTTP ${res.status}); retrying in ${Math.round(retryDelayMs / 1000)} s`);
+      await sleep(retryDelayMs);
       continue;
     }
     // 429 after retries; 400/401/403 a bad or disabled key; 404 a model name this API does not serve.
