@@ -14,7 +14,7 @@ Status and roadmap are in `PLAN.md`.
 
 ## Rebuild schedule
 
-GitHub's `schedule` trigger has never fired for this repository, so `news.yml` chains itself: after a deploy, the `next` job reads `schedule` from `scripts/config.json` (a sparse checkout of that one file), waits until the next update time (every `everyHours` hours from midnight UTC, at `minutePast`) and dispatches the workflow again with the built-in token (`workflow_dispatch` is one of the two events that token may trigger). `always()` keeps the chain alive through a failed build. Every push starts a chain too; the `next-run` concurrency group (cancel-in-progress) cancels the older waiting job, so one chain survives. Builds share a `build` concurrency group with cancel-in-progress, so a newer build (a push) replaces an older one still running: overlapping builds doubled the Gemini calls and once let the older build deploy last. The deploy lock (`pages` group, cancel-in-progress, 10-minute timeout, so a newer deploy replaces a stuck one) sits on the deploy job, not the workflow, so the waiting job doesn't block pushes. The cron line (same times) is kept as a backup. Hourly because each build makes about 10 Gemini calls (seven grouping requests plus new classifications and summaries): about 240 of the 500 a day, leaving room for pushes and re-ratings. Every 30 minutes would come to about 480 and leave none; a 27-minute loop once made 500 to 650. A build's worst case is about 20 (new summaries are capped at 10 per run, `SUMMARY_MAX_PER_RUN`). Pushes still build immediately. The schedule lives only in config.json (the cron line is a backup and may differ). `everyHours` must divide 24 and be at most 4, since a job may wait at most 6 hours; `config.test.mjs` checks it. To restart a broken chain, push or run the workflow by hand.
+GitHub's `schedule` trigger has never fired for this repository, so `news.yml` chains itself: after a deploy, the `next` job reads `schedule` from `scripts/config.json` (a sparse checkout of that one file), waits until the next update time (every `everyHours` hours from midnight UTC, at `minutePast`) and dispatches the workflow again with the built-in token (`workflow_dispatch` is one of the two events that token may trigger). `always()` keeps the chain alive through a failed build. Every push starts a chain too; the `next-run` concurrency group (cancel-in-progress) cancels the older waiting job, so one chain survives. Builds share a `build` concurrency group with cancel-in-progress, so a newer build (a push) replaces an older one still running: overlapping builds doubled the Gemini calls and once let the older build deploy last. The deploy lock (`pages` group, cancel-in-progress, 10-minute timeout, so a newer deploy replaces a stuck one) sits on the deploy job, not the workflow, so the waiting job doesn't block pushes. The cron line (same times) is kept as a backup. Hourly because each build makes about 10 Gemini calls (seven grouping requests plus new classifications and summaries): about 240 of the 500 a day, leaving room for pushes and re-ratings. Every 30 minutes would come to about 480 and leave none; a 27-minute loop once made 500 to 650. A build's worst case is about 20 (new summaries are capped at 10 per run, `SUMMARY_MAX_PER_RUN`). Pushes still build immediately. The schedule lives only in config.json (the cron line is a backup and may differ). `everyHours` must divide 24 and be at most 4, since a job may wait at most 6 hours; `config.test.mjs` checks it. To restart a broken chain, push or run the workflow by hand. `npm test` blocks only push builds; in hourly builds a failure doesn't stop the news, since that code already passed at its push (on 2026-10-08/09 a test with fixed dates aged out and blocked 13 hours of updates). The `alert` job opens one "News updates are failing" issue on a failed build, deploy or test (GitHub emails nobody about bot-started runs, but does email the owner about a new issue), adds nothing more while it is open, and closes it after the next fully good build. Cancelled runs are ignored.
 
 ## Layout
 
@@ -23,7 +23,7 @@ site/       index.html, app.css, app.js (DOM), lib.js (pure rendering helpers), 
             sw.js (service worker), manifest.webmanifest, icons/, fonts/ (Fraunces and Public Sans, SIL OFL, from Google Fonts)
 scripts/    config.json (sources), news.mjs (parse, dedupe, rank), build-news.mjs (writes news.json),
             check-feeds.mjs + candidates.json (vet new sources)
-test/       node:test suites for scripts/ and site/lib.js
+test/       node:test suites for scripts/ and site/lib.js (fixture feed dates are relative to now: fixed dates age past `maxAgeHours`)
 .github/    news.yml (build and deploy), ci.yml (tests on PRs and non-main branches),
             check-feeds.yml (vets scripts/candidates.json when it changes)
 ```
@@ -32,7 +32,7 @@ test/       node:test suites for scripts/ and site/lib.js
 
 ```
 npm ci
-npm test                       # 36 tests
+npm test                       # 104 tests
 node scripts/build-news.mjs    # fetches the feeds and writes news.json
 cp news.json site/ && cd site && python3 -m http.server 8000
 ```

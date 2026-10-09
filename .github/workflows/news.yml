@@ -21,6 +21,8 @@ jobs:
     concurrency:
       group: build
       cancel-in-progress: true
+    outputs:
+      tests: ${{ steps.tests.outcome }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -28,7 +30,12 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm test
+      # Tests guard code changes, so they block only a push. Hourly builds rebuild code that already passed
+      # at its push; there a failure raises the alert below but never stops the news (a test with fixed
+      # dates aged out and blocked every update for 13 hours, 2026-10-08/09).
+      - id: tests
+        run: npm test
+        continue-on-error: ${{ github.event_name != 'push' }}
       - name: Fetch previously published news.json
         run: curl -fsSL "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/news.json" -o previous-news.json || true
       - name: Fetch previous AI classification cache
@@ -103,3 +110,39 @@ jobs:
           echo "Next update at $(date -u -d @"$target")"
           sleep $((target - now))
           gh workflow run news.yml --repo "$GITHUB_REPOSITORY" --ref main
+
+  # Hourly builds are started by the github-actions bot, and GitHub emails nobody when they fail. So a failed
+  # build, deploy or test opens an issue (which GitHub emails to the owner); further failures add nothing while
+  # it is open, and the next fully good build closes it. A cancelled run (replaced by a newer one) says nothing.
+  alert:
+    needs: [build, deploy]
+    if: ${{ always() && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Open or close the "News updates are failing" issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BUILD: ${{ needs.build.result }}
+          DEPLOY: ${{ needs.deploy.result }}
+          TESTS: ${{ needs.build.outputs.tests }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="News updates are failing"
+          if [ "$BUILD" = cancelled ] || [ "$DEPLOY" = cancelled ]; then exit 0; fi
+          open=$(gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[0].number // empty')
+          if [ "$BUILD" = success ] && [ "$DEPLOY" = success ] && [ "$TESTS" = success ]; then
+            if [ -n "$open" ]; then gh issue close "$open" --comment "Fixed: the news updated again in $RUN_URL"; fi
+            exit 0
+          fi
+          if [ -n "$open" ]; then exit 0; fi
+          if [ "$BUILD" = success ] && [ "$DEPLOY" = success ]; then
+            what="The news updated, but the tests failed"
+          else
+            what="The news did not update (build: $BUILD, deploy: $DEPLOY, tests: ${TESTS:-not run})"
+          fi
+          gh issue create --title "$title" --body "$what. See $RUN_URL
+
+          This issue closes itself after the next fully good build."
