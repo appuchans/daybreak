@@ -135,3 +135,10 @@ await writeFile("classify-cache.json", JSON.stringify(Object.fromEntries([...cla
 const settings = { topNews: config.topNews };
 await writeFile("news.json", JSON.stringify({ generatedAt: new Date().toISOString(), settings, order: config.sections.map((s) => s.id), sections: Object.fromEntries(config.sections.map((s) => [s.id, sections[s.id]])), feedStatus: status }, null, 1));
 console.log(`wrote news.json: ${Object.entries(sections).map(([k, v]) => `${k}=${v.items.length}`).join(" ")}`);
+// Story ages per section (newest, middle and oldest card, in hours, plus how many are over 12 h), so
+// "the news looks old" can be checked from the build log without the published file.
+const hours = (t) => Math.round((Date.now() - t) / 360_000) / 10;
+for (const [id, { items }] of Object.entries(sections)) {
+  const ages = items.map((i) => hours(i.publishedAt)).sort((a, b) => a - b);
+  if (ages.length) console.log(`ages ${id}: newest=${ages[0]}h median=${ages[Math.floor(ages.length / 2)]}h oldest=${ages.at(-1)}h over12h=${ages.filter((a) => a > 12).length} top3=${items.slice(0, 3).map((i) => hours(i.publishedAt)).join("/")}h`);
+}
