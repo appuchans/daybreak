@@ -253,3 +253,17 @@ test("isJournalChatter skips journal comments and editorials, not papers", () =>
   for (const t of ["[Comment] Combining immunotherapy with radiation in lung cancer", "[Editorial] The week in science", "[Correspondence] A reply", "[Obituary] A pioneer of surgery"]) assert.ok(isJournalChatter(t), t);
   for (const t of ["Survodutide Once Weekly in Adults with Obesity and Type 2 Diabetes", "Effects of semaglutide on kidney disease: a randomized trial", "Comment sections are changing news"]) assert.ok(!isJournalChatter(t), t);
 });
+
+test("buildSection: ageStepHours takes a point off per step of age, so fresh stories overtake older ones unless clearly bigger", () => {
+  const now = Date.parse("2026-10-10T12:00:00Z");
+  const at = (h) => now - h * 3_600_000;
+  const items = [
+    { title: "Big story from yesterday evening", url: "https://a.example/1", source: "A", publishedAt: at(17), importance: 5 },
+    { title: "Fresh solid story this morning", url: "https://b.example/2", source: "B", publishedAt: at(1), importance: 4 },
+    { title: "Huge story two hours ago", url: "https://c.example/3", source: "C", publishedAt: at(2), importance: 5 },
+  ];
+  const titles = (opts) => buildSection(items, { now, ...opts }).map((i) => i.title);
+  assert.deepEqual(titles({ ageStepHours: 8 }), ["Huge story two hours ago", "Fresh solid story this morning", "Big story from yesterday evening"]);
+  assert.equal(titles({})[0], "Huge story two hours ago");
+  assert.equal(titles({})[1], "Big story from yesterday evening", "without ageStepHours, importance alone decides");
+});

@@ -16,6 +16,7 @@
   "perSection": 12,
   "perStory": 2,
   "maxAgeHours": 24,
+  "ageStepHours": 8,
   "sections": [
     {
       "id": "world",

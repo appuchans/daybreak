@@ -186,10 +186,10 @@ export function storyKeys(item) {
 // before the per-source cap, so the section backfills with the next story instead of shrinking.
 // maxAgeHours (with now): items older than that are dropped, so a dead feed cannot fill a section.
 // `eventId` (set by the AI grouping step) marks items that report the same event; they merge like exact duplicates.
-// Ranking: AI importance plus a bonus for stories several outlets carry, then each source's newest story before
+// Ranking: AI importance plus a bonus for stories several outlets carry, less a point per `ageStepHours` of age, then each source's newest story before
 // any source's second story and so on (so a fast feed cannot crowd the others out of the top
 // perSection), then newest first.
-export function buildSection(items, { perSource = 4, perSection = 12, perStory = 2, exclude = new Set(), maxAgeHours, now = Date.now(), classify } = {}) {
+export function buildSection(items, { perSource = 4, perSection = 12, perStory = 2, exclude = new Set(), maxAgeHours, ageStepHours, now = Date.now(), classify } = {}) {
   // AI classification (optional): drop stories judged to be of the wrong scope or too minor for this
   // section. Unclassified stories (no key, quota, bad output) are kept.
   const wanted = (it) =>
@@ -227,7 +227,11 @@ export function buildSection(items, { perSource = 4, perSection = 12, perStory =
   // Score = AI importance (3 when unrated) plus up to 2 for other outlets carrying the story, plus the
   // section's bonus when the story's topic is one it wants first (`classify.priorityTopics`).
   const topicBonus = (e) => (classify?.priorityTopics?.includes(e.item.topic) ? (classify.priorityBonus ?? 1) : 0);
-  const score = (e) => (e.item.importance ?? 3) + Math.min(2, e.sources.size - 1) + topicBonus(e);
+  // Age: one point off for every `ageStepHours` (config, 8) since publication, so a fresh story overtakes an
+  // older one unless the older one is clearly bigger. Without it, yesterday's important stories held the top of a
+  // section all morning (2026-10-10: Health's lead was 27.6 h old with 6-minute-old stories below it).
+  const agePenalty = (e) => (ageStepHours ? Math.floor(Math.max(0, now - e.item.publishedAt) / (ageStepHours * 3_600_000)) : 0);
+  const score = (e) => (e.item.importance ?? 3) + Math.min(2, e.sources.size - 1) + topicBonus(e) - agePenalty(e);
   // Ties go to the source whose turn it is: within each source, rank its stories by score then recency, and
   // let every source's best go before any source's second best.
   const bySource = new Map();
